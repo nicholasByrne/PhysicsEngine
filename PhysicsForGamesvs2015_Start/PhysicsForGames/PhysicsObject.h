@@ -7,6 +7,7 @@ enum ShapeType
 	Plane = 0,
 	Sphere = 1,
 	Box = 2,
+	NUMBERSHAPE = 3,
 };
 
 class PhysicsObject
@@ -52,4 +53,17 @@ public:
 		
 	}
 	virtual void MakeGizmo();
+};
+
+class PlaneClass : public PhysicsObject
+{
+public:
+	PlaneClass(glm::vec3 normal, float DistanceFromOrigin);
+	
+	void virtual Update(glm::vec3 gravity, float timeStep);
+	void virtual Debug();
+	void virtual MakeGizmo();
+
+	glm::vec3 m_normal;
+	float m_originDist;
 };

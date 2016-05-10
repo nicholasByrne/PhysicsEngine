@@ -7,6 +7,8 @@
 #include "glm/ext.hpp"
 #include "glm/gtc/quaternion.hpp"
 
+#include "PhysicsObject.h"
+
 #define Assert(val) if (val){}else{ *((char*)0) = 0;}
 #define ArrayCount(val) (sizeof(val)/sizeof(val[0]))
 
@@ -65,8 +67,9 @@ bool Physics::update()
 
     m_camera.update(1.0f / 60.0f);
 
-	physicsScene->Update(m_delta_time);
+	physicsScene->Update(m_window, m_delta_time);
 
+	
 
     return true;
 }
@@ -197,12 +200,20 @@ void Physics::renderGizmos(PxScene* physics_scene)
 void Physics::DIYPhysicsSetup1()
 {
 	physicsScene = new DIYPhysicsScene();
-	physicsScene->gravity = glm::vec3(0, -9.8f, 0);
+	physicsScene->gravity = glm::vec3(0, 0, 0);
 	physicsScene->timeStep = .001f;
 
 	//add four balls to the simulation
-	SphereClass* newBall;
-	newBall = new SphereClass(glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), 3.0f, 1, glm::vec4(1, 0, 0, 1));
-	physicsScene->AddActor(newBall);
+	SphereClass* newBall0;
+	newBall0 = new SphereClass(glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), 3.0f, 1, glm::vec4(1, 0, 0, 1));
+	//physicsScene->AddActor(newBall0);
+
+	SphereClass* newBall1;
+	newBall1 = new SphereClass(glm::vec3(0, 0, 2), glm::vec3(0, 0, 0), 3.0f, 1, glm::vec4(1, 0, 0, 1));
+	//physicsScene->AddActor(newBall1);
+
+	PlaneClass* newPlane0;
+	newPlane0 = new PlaneClass(glm::normalize(glm::vec3(1, 0, 1)), 5);
+	physicsScene->AddActor(newPlane0);
 }
 

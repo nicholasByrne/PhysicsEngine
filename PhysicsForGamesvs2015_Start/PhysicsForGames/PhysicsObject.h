@@ -67,3 +67,17 @@ public:
 	glm::vec3 m_normal;
 	float m_originDist;
 };
+
+class BoxClass : public DIYRigidBody
+{
+public:
+	BoxClass();
+
+	void virtual Update(glm::vec3 gravtiy, float timeStep);
+	void virtual Debug();
+	void virtual MakeGizmo();
+
+	float m_length;
+	float m_height;
+	float m_width;
+};

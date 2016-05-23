@@ -9,7 +9,7 @@ DIYRigidBody::DIYRigidBody(glm::vec3 _position, glm::vec3 _velocity, glm::quat _
 	m_position = _position;
 	m_velocity = _velocity;
 	//roation2D = _rotation;
-	m_mass = _mass;
+	SetMass(_mass);
 }
 
 void DIYRigidBody::Update(glm::vec3 gravity, float timeStep)
@@ -28,7 +28,7 @@ void DIYRigidBody::Debug()
 
 void DIYRigidBody::ApplyForce(glm::vec3 force)
 {
-	m_acceleration += (force / m_mass);
+	m_acceleration += (force / GetMass());
 }
 
 void DIYRigidBody::ApplyForceToActor(DIYRigidBody * actor2, glm::vec3 force) //Applies force towards other actor
@@ -46,6 +46,7 @@ void SphereClass::MakeGizmo()
 PlaneClass::PlaneClass(glm::vec3 normal, float DistanceFromOrigin)
 {
 	m_shapeID = Plane;
+	SetStaticValue(true);
 	m_normal = normal;
 	m_originDist = DistanceFromOrigin;
 }
@@ -81,4 +82,19 @@ void PlaneClass::MakeGizmo()
 	Gizmos::addDisk(centrePoint, 10, 4, colour, &t);
 	Gizmos::addTransform(glm::translate(centrePoint) * t);
 	//Gizmos::add2Line(start.xy(), end.xy(), colour);
+}
+
+void PhysicsObject::SetStaticValue(bool value)
+{
+	m_static = value;
+}
+
+float PhysicsObject::GetMass()
+{
+	if (!m_static)
+	{
+		return m_mass;
+	}
+	else
+		return 1000000.f;
 }

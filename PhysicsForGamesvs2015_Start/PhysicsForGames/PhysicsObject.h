@@ -21,6 +21,14 @@ public:
 	void virtual Debug() = 0;
 	void virtual MakeGizmo() = 0;
 	void virtual ResetPosition() {};
+	void SetStaticValue(bool value);
+	bool GetStaticValue() { return m_static; }
+	float GetMass();
+	void SetMass(float _mass) { m_mass = _mass; }
+
+private:
+	bool m_static = false;
+	float m_mass;
 };
 
 
@@ -33,7 +41,7 @@ public:
 	glm::vec3 m_velocity;
 	glm::vec3 m_acceleration;
 
-	float m_mass;
+	//float m_mass;
 	float m_roation2D; //2D rotation only needs a single float
 
 	virtual void Update(glm::vec3 gravity, float timeStep);
@@ -52,6 +60,8 @@ public:
 		m_radius = radius;
 		
 	}
+	virtual void Update(glm::vec3 gravity, float timeStep);
+	virtual void Debug();
 	virtual void MakeGizmo();
 };
 
@@ -77,7 +87,12 @@ public:
 	void virtual Debug();
 	void virtual MakeGizmo();
 
+	glm::vec3 GetMin() { glm::vec3(m_position.x - (m_length / 2), m_position.y - (m_height / 2), m_position.z - (m_height / 2)); }
+	glm::vec3 GetMax() { glm::vec3(m_position.x + (m_length / 2), m_position.y + (m_height / 2), m_position.z + (m_height / 2)); }
+
 	float m_length;
 	float m_height;
 	float m_width;
 };
+
+//DIYPhysicsScene Collision Seperation and Response

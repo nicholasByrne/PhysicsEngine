@@ -81,14 +81,21 @@ public:
 class BoxClass : public DIYRigidBody
 {
 public:
-	BoxClass();
+	//BoxClass();
+	BoxClass(glm::vec3 position, glm::vec3 velocity, float mass, float length, float height, float width, glm::vec4 colour) : DIYRigidBody(position, velocity, glm::quat(), mass)
+	{
+		m_shapeID = Box;
+		m_length = length;
+		m_height = height;
+		m_width = width;
+	}
 
 	void virtual Update(glm::vec3 gravtiy, float timeStep);
 	void virtual Debug();
 	void virtual MakeGizmo();
 
-	glm::vec3 GetMin() { glm::vec3(m_position.x - (m_length / 2), m_position.y - (m_height / 2), m_position.z - (m_height / 2)); }
-	glm::vec3 GetMax() { glm::vec3(m_position.x + (m_length / 2), m_position.y + (m_height / 2), m_position.z + (m_height / 2)); }
+	glm::vec3 GetMin() { return glm::vec3(m_position.x - (m_length / 2), m_position.y - (m_height / 2), m_position.z - (m_height / 2)); }
+	glm::vec3 GetMax() { return glm::vec3(m_position.x + (m_length / 2), m_position.y + (m_height / 2), m_position.z + (m_height / 2)); }
 
 	float m_length;
 	float m_height;

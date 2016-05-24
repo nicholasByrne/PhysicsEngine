@@ -37,6 +37,15 @@ void DIYRigidBody::ApplyForceToActor(DIYRigidBody * actor2, glm::vec3 force) //A
 	ApplyForce(-force);
 }
 
+void SphereClass::Update(glm::vec3 gravity, float timeStep)
+{
+	DIYRigidBody::Update(gravity, timeStep);
+}
+
+void SphereClass::Debug()
+{
+}
+
 void SphereClass::MakeGizmo()
 {
 	//Gizmos::addSphere(m_position, m_radius, 8, 8, glm::vec4(1, 0, 0, 1));
@@ -97,4 +106,18 @@ float PhysicsObject::GetMass()
 	}
 	else
 		return 1000000.f;
+}
+
+void BoxClass::Update(glm::vec3 gravtiy, float timeStep)
+{
+	DIYRigidBody::Update(gravtiy, timeStep);
+}
+
+void BoxClass::Debug()
+{
+}
+
+void BoxClass::MakeGizmo()
+{
+	Gizmos::addAABB(m_position, glm::vec3(m_length, m_height, m_width), glm::vec4(1, 1, 1, 1));
 }

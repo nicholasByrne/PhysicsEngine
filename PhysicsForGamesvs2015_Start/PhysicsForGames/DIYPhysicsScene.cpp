@@ -4,6 +4,7 @@
 #include "gl_core_4_4.h"
 #include "GLFW/glfw3.h"
 #include <algorithm>
+#include <iostream>
 
 DIYPhysicsScene::DIYPhysicsScene()
 {
@@ -32,14 +33,17 @@ void DIYPhysicsScene::Update(GLFWwindow* window, float fDeltaTime)
 		//SphereClass* sphere2 = dynamic_cast<SphereClass*>(actors[0]);
 		//sphere2->ApplyForce(glm::vec3(0, 0, 1));
 		//std::cout << "Force applied" << std::endl;
+		BoxClass* Box2 = dynamic_cast<BoxClass*>(actors[0]);
+		Box2->m_position.x += 0.1;
 	}
-	CheckForCollisions();
+	//CheckForCollisions();
 
 	//Update actors
 	for (std::vector<PhysicsObject*>::iterator iter = actors.begin(); iter != actors.end(); ++iter)
 	{
 		(*iter)->Update(gravity, fDeltaTime);
 	}
+	CheckForCollisions();
 	DebugScene();
 }
 
@@ -191,9 +195,18 @@ bool DIYPhysicsScene::Plane2Box(PhysicsObject* obj1, PhysicsObject* obj2)
 
 		if (overlap < 0)
 		{
-			glm::vec3 forceVector = -1 * box2->GetMass() * plane1->m_normal * (glm::dot(plane1->m_normal, box2->m_velocity));
+			float boxToPlane = glm::dot(box2->m_position, plane1->m_normal) - plane1->m_originDist;
+			glm::vec3 planeNormal = plane1->m_normal;
+			if (boxToPlane < 0)
+			{
+				planeNormal *= -1;
+			}
+			glm::vec3 forceVector = -1 * box2->GetMass() * planeNormal * (glm::dot(planeNormal, box2->m_velocity));
 			box2->ApplyForce(2 * forceVector);
-			box2->m_position += plane1->m_normal * overlap * 0.5f;
+			box2->m_position += planeNormal * std::abs(overlap) * 0.5f;
+
+			std::cout << "box2->Apply force: " << (2 * forceVector.y) << "\tplaneNormal.y: " << planeNormal.y << std::endl;
+			
 			return true;
 		}
 	}
@@ -304,9 +317,13 @@ bool DIYPhysicsScene::Box2Box(PhysicsObject* obj1, PhysicsObject* obj2)
 		glm::vec3 box2Min = box2->GetMin();
 		glm::vec3 box2Max = box2->GetMax();
 
+		glm::vec3 boxDelta = box2->m_position - box1->m_position;
+		std::cout << "BoxDelta: (" << boxDelta.x << ", " << boxDelta.y << ", " << boxDelta.z << ")" << std::endl;
+
 		if (box1Min.x < box2Max.x && box1Max.x > box2Min.x && box1Min.y < box2Max.y && box1Max.y > box2Min.y && box1Min.z < box2Max.z && box1Max.z > box2Min.z)
 		{
-			glm::vec3 boxDelta = box2->m_position - box1->m_position;
+			//glm::vec3 boxDelta = box2->m_position - box1->m_position;
+			boxDelta = box2->m_position - box1->m_position;
 			glm::vec3 boxExtents = glm::vec3(box1->m_length + box2->m_length, box1->m_height + box2->m_height, box1->m_width + box1->m_width);
 				
 			float xOverlap = std::abs(boxDelta.x) - boxExtents.x;

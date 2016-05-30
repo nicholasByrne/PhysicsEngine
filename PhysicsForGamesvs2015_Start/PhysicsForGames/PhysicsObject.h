@@ -8,7 +8,9 @@ enum ShapeType
 	Sphere = 1,
 	Box = 2,
 	NUMBERSHAPE = 3,
+	Joint = 4,
 };
+
 
 class PhysicsObject
 {
@@ -35,7 +37,7 @@ private:
 class DIYRigidBody : public PhysicsObject
 {
 public:
-	DIYRigidBody(glm::vec3 position, glm::vec3 velocity, glm::quat rotation, float mass);
+	DIYRigidBody(glm::vec3 position, glm::vec3 velocity, glm::quat rotation, float mass, bool isStatic);
 
 	glm::vec3 m_position;
 	glm::vec3 m_velocity;
@@ -50,11 +52,13 @@ public:
 	void ApplyForceToActor(DIYRigidBody* actor2, glm::vec3 force);
 };
 
+
 class SphereClass : public DIYRigidBody
 {
 public: 
 	float m_radius;
-	SphereClass(glm::vec3 position, glm::vec3 velocity, float mass, float radius, glm::vec4 colour) : DIYRigidBody(position, velocity, glm::quat(), mass)
+	SphereClass(glm::vec3 position, glm::vec3 velocity, float mass, float radius, glm::vec4 colour, bool isStatic = false)
+		: DIYRigidBody(position, velocity, glm::quat(), mass, isStatic)
 	{
 		m_shapeID = Sphere;
 		m_radius = radius;
@@ -64,6 +68,7 @@ public:
 	virtual void Debug();
 	virtual void MakeGizmo();
 };
+
 
 class PlaneClass : public PhysicsObject
 {
@@ -78,11 +83,13 @@ public:
 	float m_originDist;
 };
 
+
 class BoxClass : public DIYRigidBody
 {
 public:
 	//BoxClass();
-	BoxClass(glm::vec3 position, glm::vec3 velocity, float mass, float length, float height, float width, glm::vec4 colour) : DIYRigidBody(position, velocity, glm::quat(), mass)
+	BoxClass(glm::vec3 position, glm::vec3 velocity, float mass, float length, float height, float width, glm::vec4 colour, bool isStatic = false) 
+		: DIYRigidBody(position, velocity, glm::quat(), mass, isStatic)
 	{
 		m_shapeID = Box;
 		m_length = length;
@@ -94,12 +101,30 @@ public:
 	void virtual Debug();
 	void virtual MakeGizmo();
 
-	glm::vec3 GetMin() { return glm::vec3(m_position.x - (m_length / 2), m_position.y - (m_height / 2), m_position.z - (m_height / 2)); }
-	glm::vec3 GetMax() { return glm::vec3(m_position.x + (m_length / 2), m_position.y + (m_height / 2), m_position.z + (m_height / 2)); }
+	glm::vec3 GetMin() { return glm::vec3(m_position.x - (m_length / 2), m_position.y - (m_height / 2), m_position.z - (m_width / 2)); }
+	glm::vec3 GetMax() { return glm::vec3(m_position.x + (m_length / 2), m_position.y + (m_height / 2), m_position.z + (m_width / 2)); }
 
 	float m_length;
 	float m_height;
 	float m_width;
+};
+
+
+class SpringJoint : public PhysicsObject
+{
+public:
+	SpringJoint(DIYRigidBody* connection1, DIYRigidBody* connection2, float springCoefficient, float damping);
+
+	void virtual Update(glm::vec3 gravity, float timeStep);
+	void virtual Debug();
+	void virtual MakeGizmo();
+
+private:
+	DIYRigidBody* m_connections[2];
+	float m_damping;
+	float m_restLength;
+	float m_springCoefficient;
+
 };
 
 //DIYPhysicsScene Collision Seperation and Response

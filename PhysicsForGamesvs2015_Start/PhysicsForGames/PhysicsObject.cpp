@@ -4,20 +4,23 @@
 #include <cmath>
 
 
-DIYRigidBody::DIYRigidBody(glm::vec3 _position, glm::vec3 _velocity, glm::quat _rotation, float _mass)
+DIYRigidBody::DIYRigidBody(glm::vec3 _position, glm::vec3 _velocity, glm::quat _rotation, float _mass, bool isStatic = false)
 {
 	m_position = _position;
 	m_velocity = _velocity;
 	//roation2D = _rotation;
 	SetMass(_mass);
+	PhysicsObject::SetStaticValue(isStatic);
 }
 
 void DIYRigidBody::Update(glm::vec3 gravity, float timeStep)
 {
-	//m_velocity += gravity * timeStep;
-	m_acceleration += gravity * timeStep;
-	m_velocity += m_acceleration;
-	m_position += m_velocity * timeStep;
+	if (!GetStaticValue())
+	{
+		m_acceleration += gravity * timeStep;
+		m_velocity += m_acceleration;
+		m_position += m_velocity * timeStep;
+	}
 	
 	m_acceleration = glm::vec3(0);
 }
@@ -119,5 +122,34 @@ void BoxClass::Debug()
 
 void BoxClass::MakeGizmo()
 {
-	Gizmos::addAABB(m_position, glm::vec3(m_length, m_height, m_width), glm::vec4(1, 1, 1, 1));
+	Gizmos::addAABB(m_position, glm::vec3(m_length/2, m_height/2, m_width/2), glm::vec4(1, 1, 1, 1));
+}
+
+SpringJoint::SpringJoint(DIYRigidBody * connection1, DIYRigidBody * connection2, float springCoefficient, float damping)
+{
+	m_connections[0] = connection1;
+	m_connections[1] = connection2;
+	m_springCoefficient = springCoefficient;
+	m_damping = damping;
+	m_restLength = glm::length(m_connections[0]->m_position - m_connections[1]->m_position);
+	m_shapeID = Joint;
+}
+
+void SpringJoint::Update(glm::vec3 gravity, float timeStep)
+{
+	glm::vec3 displacement = m_connections[0]->m_position - m_connections[1]->m_position; // From 1 to 0
+	glm::vec3 positionDirection = glm::normalize(displacement);
+	glm::vec3 restingDisplacement = positionDirection * m_restLength;
+	glm::vec3 dampingVector = m_damping * (m_connections[1]->m_velocity - m_connections[0]->m_velocity);
+	//m_connections[1]->ApplyForce(-m_springCoefficient * (restingDisplacement - displacement));// -dampingVector);
+	m_connections[1]->ApplyForce(-m_springCoefficient * (restingDisplacement - displacement) - dampingVector);
+}
+
+void SpringJoint::Debug()
+{
+}
+
+void SpringJoint::MakeGizmo()
+{
+	Gizmos::addLine(m_connections[0]->m_position, m_connections[1]->m_position, glm::vec4(1, 1, 1, 1));
 }

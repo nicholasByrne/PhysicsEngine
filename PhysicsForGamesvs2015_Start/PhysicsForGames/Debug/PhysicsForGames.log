@@ -1,3 +1,0 @@
-﻿  DIYPhysicsScene.cpp
-c:\users\nicholas.byrne\documents\physicsengine\physicsforgamesvs2015_start\physicsforgames\diyphysicsscene.cpp(37): warning C4305: '+=': truncation from 'double' to 'float'
-  PhysicsForGames.vcxproj -> C:\Users\nicholas.byrne\Documents\PhysicsEngine\PhysicsForGamesvs2015_Start\Debug\PhysicsForGames.exe

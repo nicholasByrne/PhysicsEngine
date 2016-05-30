@@ -29,7 +29,10 @@ void DIYPhysicsScene::Update(GLFWwindow* window, float fDeltaTime)
 	//Calculate Timestep?
 	if (glfwGetKey(window, GLFW_KEY_SPACE))
 	{
+		
 		gravity.y = -9.8;
+		SphereClass* sphere2 = dynamic_cast<SphereClass*>(actors[9]);
+		sphere2->ApplyForce(glm::vec3(0, 1, 3));
 		//actors[0]->ApplyForceToActor(actors[1], glm::vec3(1, 1, 1));
 		//SphereClass* sphere2 = dynamic_cast<SphereClass*>(actors[0]);
 		//sphere2->ApplyForce(glm::vec3(0, 0, 1));
@@ -40,9 +43,11 @@ void DIYPhysicsScene::Update(GLFWwindow* window, float fDeltaTime)
 	//CheckForCollisions();
 
 	//Update actors
+	int i = 0;
 	for (std::vector<PhysicsObject*>::iterator iter = actors.begin(); iter != actors.end(); ++iter)
 	{
 		(*iter)->Update(gravity, fDeltaTime);
+		i++;
 	}
 	CheckForCollisions();
 	DebugScene();

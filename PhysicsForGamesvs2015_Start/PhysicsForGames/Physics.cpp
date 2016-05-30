@@ -228,22 +228,22 @@ void Physics::DIYPhysicsSetup1()
 	newPlane0 = new PlaneClass(glm::normalize(glm::vec3(0, 1, 0)),0);
 	physicsScene->AddActor(newPlane0);
 
-	int numberBalls = 10;
-	SphereClass* ball1 = new SphereClass(glm::vec3(1, 7, 1), glm::vec3(0, 0, 0), 3.0f, 0.5, glm::vec4(1, 0, 0, 1), true);
-	SphereClass* ball2 = new SphereClass(glm::vec3(1, 5, 1), glm::vec3(0, 0, 0), 3.0f, 0.5, glm::vec4(1, 0, 0, 1), false);
-	SphereClass* ball3 = new SphereClass(glm::vec3(1, 3, 1), glm::vec3(0, 0, 0), 3.0f, 0.5, glm::vec4(1, 0, 0, 1), false);
-	SphereClass* ball4 = new SphereClass(glm::vec3(1, 1, 1), glm::vec3(0, 0, 0), 3.0f, 0.5, glm::vec4(1, 0, 0, 1), false);
-	SpringJoint* joint1 = new SpringJoint(ball1, ball2, 0.5f, 0.2f);
-	SpringJoint* joint2 = new SpringJoint(ball2, ball3, 0.5f, 0.2f);
-	SpringJoint* joint3 = new SpringJoint(ball3, ball4, 0.5f, 0.2f);
-
-	physicsScene->AddActor(ball1);
-	physicsScene->AddActor(ball2);
-	physicsScene->AddActor(ball3);
-	physicsScene->AddActor(ball4);
-	physicsScene->AddActor(joint1);
-	physicsScene->AddActor(joint2);
-	physicsScene->AddActor(joint3);
+	//int numberBalls = 10;
+	//SphereClass* ball1 = new SphereClass(glm::vec3(1, 7, 1), glm::vec3(0, 0, 0), 3.0f, 0.5, glm::vec4(1, 0, 0, 1), true);
+	//SphereClass* ball2 = new SphereClass(glm::vec3(1, 5, 1), glm::vec3(0, 0, 0), 3.0f, 0.5, glm::vec4(1, 0, 0, 1), false);
+	//SphereClass* ball3 = new SphereClass(glm::vec3(1, 3, 1), glm::vec3(0, 0, 0), 3.0f, 0.5, glm::vec4(1, 0, 0, 1), false);
+	//SphereClass* ball4 = new SphereClass(glm::vec3(1, 1, 1), glm::vec3(0, 0, 0), 3.0f, 0.5, glm::vec4(1, 0, 0, 1), false);
+	//SpringJoint* joint1 = new SpringJoint(ball1, ball2, 0.5f, 0.2f);
+	//SpringJoint* joint2 = new SpringJoint(ball2, ball3, 0.5f, 0.2f);
+	//SpringJoint* joint3 = new SpringJoint(ball3, ball4, 0.5f, 0.2f);
+	//
+	//physicsScene->AddActor(ball1);
+	//physicsScene->AddActor(ball2);
+	//physicsScene->AddActor(ball3);
+	//physicsScene->AddActor(ball4);
+	//physicsScene->AddActor(joint1);
+	//physicsScene->AddActor(joint2);
+	//physicsScene->AddActor(joint3);
 
 	//for (int i = 0; i < numberBalls; ++i)
 	//{
@@ -253,7 +253,41 @@ void Physics::DIYPhysicsSetup1()
 	//	physicsScene->AddActor(spring);
 	//	ball1 = ball2;
 	//}
+	int width = 4;
+	int height = 4;
 
-	
+	SphereClass* ball[4][4];
+	for (int i = 0; i < 4; ++i)
+	{
+		for (int j = 0; j < 4; ++j)
+		{
+			ball[i][j] = new SphereClass(glm::vec3(2 * i, 2 * j, 1), glm::vec3(0, 0, 0), 3.0f, 0.5, glm::vec4(1, 0, 0, 1), false);
+			physicsScene->AddActor(ball[i][j]);
+		}
+	}
+
+	SpringJoint* joint[24];
+	int jointCount = 0;
+	for (int i = 0; i < 4; ++i)
+	{
+		for (int j = 0; j < 3; ++j)
+		{
+			joint[jointCount] = new SpringJoint(ball[i][j], ball[i][j + 1], 0.5, 0.5);
+			jointCount++;
+		}
+	}
+	for (int i = 0; i < 3; ++i)
+	{
+		for (int j = 0; j < 4; ++j)
+		{
+			joint[jointCount] = new SpringJoint(ball[i][j], ball[i + 1][j], 0.5, 0.5); 
+			jointCount++;
+		}
+	}
+	//physicsScene->AddActor(joint[jointCount]);
+	for (int i = 0; i < jointCount; ++i)
+	{
+		physicsScene->AddActor(joint[i]);
+	}
 }
 

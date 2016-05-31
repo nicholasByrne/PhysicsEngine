@@ -23,7 +23,7 @@ public:
 	//Collisions
 	void CheckForCollisions();
 	static void CollisionSeperate(PhysicsObject*, PhysicsObject*, float overlap, glm::vec3 normal);
-	void CollisionResponse(PhysicsObject*, PhysicsObject*, float overlap, glm::vec3 normal);
+	static void CollisionResponse(PhysicsObject*, PhysicsObject*, float overlap, glm::vec3 normal);
 
 	static bool Plane2Plane(PhysicsObject*, PhysicsObject*);
 	static bool Plane2Sphere(PhysicsObject*, PhysicsObject*);

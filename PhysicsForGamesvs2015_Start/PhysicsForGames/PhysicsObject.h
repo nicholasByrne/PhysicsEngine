@@ -103,6 +103,7 @@ public:
 
 	glm::vec3 GetMin() { return glm::vec3(m_position.x - (m_length / 2), m_position.y - (m_height / 2), m_position.z - (m_width / 2)); }
 	glm::vec3 GetMax() { return glm::vec3(m_position.x + (m_length / 2), m_position.y + (m_height / 2), m_position.z + (m_width / 2)); }
+	glm::vec3 GetExtents() { return glm::vec3((m_length / 2), (m_height / 2), (m_width / 2)); }
 
 	float m_length;
 	float m_height;

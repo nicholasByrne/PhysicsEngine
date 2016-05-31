@@ -30,9 +30,9 @@ void DIYPhysicsScene::Update(GLFWwindow* window, float fDeltaTime)
 	if (glfwGetKey(window, GLFW_KEY_SPACE))
 	{
 		
-		gravity.y = -9.8;
-		SphereClass* sphere2 = dynamic_cast<SphereClass*>(actors[9]);
-		sphere2->ApplyForce(glm::vec3(0, 1, 3));
+		//gravity.y = -9.8;
+		//SphereClass* sphere2 = dynamic_cast<SphereClass*>(actors[9]);
+		//sphere2->ApplyForce(glm::vec3(0, 1, 3));
 		//actors[0]->ApplyForceToActor(actors[1], glm::vec3(1, 1, 1));
 		//SphereClass* sphere2 = dynamic_cast<SphereClass*>(actors[0]);
 		//sphere2->ApplyForce(glm::vec3(0, 0, 1));
@@ -40,7 +40,6 @@ void DIYPhysicsScene::Update(GLFWwindow* window, float fDeltaTime)
 		//BoxClass* Box2 = dynamic_cast<BoxClass*>(actors[0]);
 		//Box2->m_position.x += 0.1f;
 	}
-	//CheckForCollisions();
 
 	//Update actors
 	int i = 0;
@@ -121,23 +120,24 @@ void DIYPhysicsScene::CollisionSeperate(PhysicsObject* obj1, PhysicsObject* obj2
 	glm::vec3 seperationVector = normal * overlap;
 	//obj1->Translate(-seperationVector * massRatio2);
 	//obj2->Translate(seperationVector * massRatio1);
-	if (obj1->m_shapeID != Plane)
+	//if (obj1->m_shapeID != Plane )
+	if (obj1->GetStaticValue() == false)
 	{
 		DIYRigidBody* body1 = dynamic_cast<DIYRigidBody*>(obj1);
 		body1->m_position += (-seperationVector * massRatio2);
 	}
-	else
+	else if (obj2->GetStaticValue() == false)
 	{
 		DIYRigidBody* body2 = dynamic_cast<DIYRigidBody*>(obj2);
 		body2->m_position += (seperationVector * massRatio1);
 	}
 
-	if (obj2->m_shapeID != Plane)
+	if (obj2->GetStaticValue() == false)
 	{
 		DIYRigidBody* body2 = dynamic_cast<DIYRigidBody*>(obj2);
 		body2->m_position += (seperationVector * massRatio1);
 	}
-	else
+	else if (obj1->GetStaticValue() == false)
 	{
 		DIYRigidBody* body1 = dynamic_cast<DIYRigidBody*>(obj1);
 		body1->m_position += (-seperationVector * massRatio2);
@@ -148,20 +148,23 @@ void DIYPhysicsScene::CollisionSeperate(PhysicsObject* obj1, PhysicsObject* obj2
 
 void DIYPhysicsScene::CollisionResponse(PhysicsObject* obj1, PhysicsObject* obj2, float overlap, glm::vec3 normal)
 {
-	//CollisionSeperate(obj1, obj2, overlap, normal);
-	//
-	//const float coefficientOfRestitution = 0.9f;
-	//
-	////calculate momentum along collision normal
-	//float impulse1, impulse2;
-	//if (obj1->m_shapeID == Plane)
-	//	impulse1 = 0;
-	//	float impulse1 = -(1 + coefficientOfRestitution) * glm::dot(obj1->GetMomentum(), normal);
-	//float impulse2 = -(1 + coefficientOfRestitution) * glm::dot(obj2->GetMomentum(), normal);
-	//
-	////apply change in momentum
-	//obj1->AddMomentum(impulse1 * normal);
-	//obj2->AddMomentum(impulse2 * normal);
+	CollisionSeperate(obj1, obj2, overlap, normal);
+	
+	if (obj1->m_shapeID == Plane || obj2->m_shapeID == Plane)
+		return;
+
+	DIYRigidBody* object1 = dynamic_cast<DIYRigidBody*>(obj1);
+	DIYRigidBody* object2 = dynamic_cast<DIYRigidBody*>(obj2);
+
+	glm::vec3 relativeVelocity = object2->m_velocity - object1->m_velocity;
+	float velocityAlongNormal = glm::dot(relativeVelocity, normal);
+	float impuseAmount = -(2) * velocityAlongNormal;
+	//					 -(1 + CoefficientOfRestitution) * velocityAlongNormal
+	impuseAmount /= 1 / object1->GetMass() + 1 / object2->GetMass();
+
+	glm::vec3 impulse = impuseAmount * normal;
+	object1->m_velocity += (1 / object1->GetMass() * -impulse);
+	object2->m_velocity += (1 / object2->GetMass() * +impulse);
 }
 
 bool DIYPhysicsScene::Plane2Plane(PhysicsObject* obj1, PhysicsObject* obj2)
@@ -203,11 +206,11 @@ bool DIYPhysicsScene::Plane2Sphere(PhysicsObject* obj1, PhysicsObject* obj2)
 			{
 				planeNormal *= -1;
 			}
-			glm::vec3 forceVector = -1 * sphere2->GetMass() * planeNormal * (glm::dot(planeNormal, sphere2->m_velocity));
-			sphere2->ApplyForce(2 * forceVector);
-			sphere2->m_position += collisionNormal * intersection * 1.0f;
+			//glm::vec3 forceVector = -1 * sphere2->GetMass() * planeNormal * (glm::dot(planeNormal, sphere2->m_velocity));
+			//sphere2->ApplyForce(2 * forceVector);
+			//sphere2->m_position += collisionNormal * intersection * 1.0f;
 
-			//CollisionSeperate(obj1, obj2, -intersection, plane1->m_normal);
+			CollisionSeperate(obj1, obj2, intersection, planeNormal);  //TODO
 			return true;
 		}
 	}
@@ -220,7 +223,7 @@ bool DIYPhysicsScene::Plane2Box(PhysicsObject* obj1, PhysicsObject* obj2)
 	PlaneClass* plane1 = dynamic_cast<PlaneClass*>(obj1);
 	BoxClass* box2 = dynamic_cast<BoxClass*>(obj2);
 	//if we are successful then test for collision
-	if (plane1 != NULL && box2 != NULL)
+	if (plane1 != NULL && box2 != NULL && !box2->GetStaticValue())
 	{
 		glm::vec3 boxMin = box2->GetMin();
 		glm::vec3 boxMax = box2->GetMax();
@@ -238,11 +241,13 @@ bool DIYPhysicsScene::Plane2Box(PhysicsObject* obj1, PhysicsObject* obj2)
 			{
 				planeNormal *= -1;
 			}
-			glm::vec3 forceVector = -1 * box2->GetMass() * planeNormal * (glm::dot(planeNormal, box2->m_velocity));
-			box2->ApplyForce(2 * forceVector);
+			//CollisionResponse(obj1, obj2, overlap, plane1->m_normal);
+			glm::vec3 forceVector = -2 * planeNormal * (glm::dot(planeNormal, box2->m_velocity));
+			box2->m_velocity += forceVector;
+			//box2->ApplyForce(2 * forceVector);
 			box2->m_position += planeNormal * std::abs(overlap) * 1.0f;
 
-			std::cout << "box2->Apply force: " << (2 * forceVector.y) << "\tplaneNormal.y: " << planeNormal.y << std::endl;
+			//std::cout << "box2->Apply force: " << (2 * forceVector.y) << "\tplaneNormal.y: " << planeNormal.y << std::endl;
 			
 			//CollisionSeperate(obj1, obj2, overlap, plane1->m_normal);
 			return true;
@@ -280,8 +285,6 @@ bool DIYPhysicsScene::Sphere2Sphere(PhysicsObject* obj1, PhysicsObject* obj2)
 			glm::vec3 seperationVector = collisionNormal * intersection * 0.5f;
 			sphere1->m_position -= seperationVector;
 			sphere2->m_position += seperationVector;
-			
-			//CollisionSeperate(obj1, obj2, -intersection, collisionNormal);
 			return true;
 		}
 	}
@@ -296,40 +299,45 @@ bool DIYPhysicsScene::Sphere2Box(PhysicsObject* obj1, PhysicsObject* obj2)
 	//if we are successful then test for collision
 	if (sphere1 != NULL && box2 != NULL)
 	{
-		glm::vec3 box2Min = box2->GetMin();
-		glm::vec3 box2Max = box2->GetMax();
+		glm::vec3 box2MinExtents = -box2->GetExtents();
+		glm::vec3 box2MaxExtents = box2->GetExtents();
 
 		//Clamp sphere and box together
 		glm::vec3 distance = sphere1->m_position - box2->m_position;
 		glm::vec3 clampPoint = distance;
 		
 			//clamp x-axis
-		if (distance.x < box2Min.x)
-			clampPoint.x = box2Min.x;
-		else if (distance.x > box2Max.x)
-			clampPoint.x = box2Max.x;
+		if (distance.x < box2MinExtents.x)
+			clampPoint.x = box2MinExtents.x;
+		else if (distance.x > box2MaxExtents.x)
+			clampPoint.x = box2MaxExtents.x;
 			//clamp y-axis
-		if (distance.y < box2Min.y)
-			clampPoint.y = box2Min.y;
-		else if (distance.y > box2Max.y)
-			clampPoint.y = box2Max.y;
+		if (distance.y < box2MinExtents.y)
+			clampPoint.y = box2MinExtents.y;
+		else if (distance.y > box2MaxExtents.y)
+			clampPoint.y = box2MaxExtents.y;
 			//clamp z-axis
-		if (distance.z < box2Min.z)
-			clampPoint.z = box2Min.z;
-		else if (distance.z > box2Max.z)
-			clampPoint.z = box2Max.z;
+		if (distance.z < box2MinExtents.z)
+			clampPoint.z = box2MinExtents.z;
+		else if (distance.z > box2MaxExtents.z)
+			clampPoint.z = box2MaxExtents.z;
 
 		glm::vec3 clampedDistance = distance - clampPoint;
 
 		//object overlap =  clamped distance - sphere radius
-		float overlap = glm::length(clampedDistance) - sphere1->m_radius;
+		float overlap = glm::length(clampedDistance) -sphere1->m_radius;
 
 		if (overlap < 0)
 		{
-			sphere1->ApplyForceToActor(box2, glm::normalize(clampedDistance) * -overlap);
-			sphere1->m_position += overlap * glm::normalize(clampedDistance) * 0.5f;
-			box2->m_position -= overlap * glm::normalize(clampedDistance) * 0.5f;
-			//CollisionSeperate(obj1, obj2, -overlap, glm::normalize(clampedDistance));
+			glm::vec3 collisionNormal = glm::normalize(distance);
+			glm::vec3 relativeVelocity = sphere1->m_velocity - box2->m_velocity;
+			glm::vec3 collisionVector = collisionNormal * (glm::dot(relativeVelocity, collisionNormal));
+			glm::vec3 forceVector = collisionVector * 1.0f / (1 / sphere1->GetMass() + 1 / box2->GetMass());
+			//Newtons Third Law
+			sphere1->ApplyForceToActor(box2, forceVector * 2);
+			//Seperate Objects
+			sphere1->m_position -= overlap * glm::normalize(clampedDistance) * 0.5f;
+			box2->m_position += overlap * glm::normalize(clampedDistance) * 0.5f;
 			return true;
 		}
 		return false;
@@ -365,9 +373,10 @@ bool DIYPhysicsScene::Box2Box(PhysicsObject* obj1, PhysicsObject* obj2)
 
 		if (box1Min.x < box2Max.x && box1Max.x > box2Min.x && box1Min.y < box2Max.y && box1Max.y > box2Min.y && box1Min.z < box2Max.z && box1Max.z > box2Min.z)
 		{
-			glm::vec3 boxDelta = box2->m_position - box1->m_position;
 			//boxDelta = box2->m_position - box1->m_position;
+			glm::vec3 boxDelta = box2->m_position - box1->m_position;
 			glm::vec3 boxExtents = glm::vec3(box1->m_length/2 + box2->m_length/2, box1->m_height/2 + box2->m_height/2, box1->m_width/2 + box2->m_width/2);
+
 				
 			float xOverlap = std::abs(boxDelta.x) - boxExtents.x;
 			float yOverlap = std::abs(boxDelta.y) - boxExtents.y;
@@ -384,11 +393,29 @@ bool DIYPhysicsScene::Box2Box(PhysicsObject* obj1, PhysicsObject* obj2)
 			else if (yOverlap == minOverlap) seperationNormal.y = std::signbit(boxDelta.y) ? -1.0f : 1.0f;
 			else if (zOverlap == minOverlap) seperationNormal.z = std::signbit(boxDelta.z) ? -1.0f : 1.0f;
 
-			//separate
-			box1->ApplyForceToActor(box2, seperationNormal * -minOverlap);	
-			box1->m_position -= minOverlap * seperationNormal * 0.5f;
-			box2->m_position += minOverlap * seperationNormal * 0.5f;
+			//PushAway
+			CollisionResponse(obj1, obj2, -minOverlap, seperationNormal);
+
+			//glm::vec3 collisionNormal = seperationNormal;// glm::normalize(boxDelta * seperationNormal);
+			//glm::vec3 relativeVelocity = box2->m_velocity - box1->m_velocity;
+			//glm::vec3 collisionVector = collisionNormal * (glm::dot(relativeVelocity, collisionNormal));
+			//glm::vec3 forceVector = collisionVector * 1.0f / (1 / box1->GetMass() + 1 / box2->GetMass());
+			//box1->m_velocity -= (1/box1->GetMass()) * forceVector;
+			//box2->m_velocity += (1 / box2->GetMass()) * forceVector;
+
+			//glm::vec3 forceVector = -1 * sphere2->GetMass() * planeNormal * (glm::dot(planeNormal, sphere2->m_velocity));
+
+			std::cout << "AABB-AABB Collision!" << std::endl;
+			std::cout << "OLD Box1Pos = (" << box1->m_position.x << ",\t " << box1->m_position.y << ",\t " << box1->m_position.z << ") - " << std::endl;
+			std::cout << "OLD Box2Pos = (" << box2->m_position.x << ",\t " << box2->m_position.y << ",\t " << box2->m_position.z << ") - " << std::endl;
+			//box1->ApplyForceToActor(box2, seperationNormal * -minOverlap);	
+			////Seperate
+			//box1->m_position += minOverlap * collisionNormal * 0.5f;
+			//box2->m_position -= minOverlap * collisionNormal * 0.5f;
+
 			//CollisionSeperate(obj1, obj2, -minOverlap, seperationNormal);
+			std::cout << "NEW Box1Pos = (" << box1->m_position.x << ",\t " << box1->m_position.y << ",\t " << box1->m_position.z << ") - " << std::endl;
+			std::cout << "NEW Box2Pos = (" << box2->m_position.x << ",\t " << box2->m_position.y << ",\t " << box2->m_position.z << ") - " << std::endl;
 			return true;
 		}
 	}
@@ -398,3 +425,6 @@ bool DIYPhysicsScene::Box2Box(PhysicsObject* obj1, PhysicsObject* obj2)
 
 
 
+// P2S P2B
+// S2S S2B
+// 

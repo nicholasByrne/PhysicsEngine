@@ -17,8 +17,8 @@ void DIYRigidBody::Update(glm::vec3 gravity, float timeStep)
 {
 	if (!GetStaticValue())
 	{
-		m_acceleration += gravity * timeStep;
-		m_velocity += m_acceleration;
+		m_acceleration += gravity;
+		m_velocity += m_acceleration * timeStep;
 		m_position += m_velocity * timeStep;
 	}
 	
@@ -108,7 +108,7 @@ float PhysicsObject::GetMass()
 		return m_mass;
 	}
 	else
-		return 1000000.f;
+		return 100000000.f;
 }
 
 void BoxClass::Update(glm::vec3 gravtiy, float timeStep)
@@ -122,7 +122,8 @@ void BoxClass::Debug()
 
 void BoxClass::MakeGizmo()
 {
-	Gizmos::addAABB(m_position, glm::vec3(m_length/2, m_height/2, m_width/2), glm::vec4(1, 1, 1, 1));
+	//Gizmos::addAABB(m_position, glm::vec3(m_length/2, m_height/2, m_width/2), glm::vec4(1, 1, 1, 1));
+	Gizmos::addAABBFilled(m_position, glm::vec3(m_length / 2, m_height / 2, m_width / 2), glm::vec4(0, 0, 1, 1));
 }
 
 SpringJoint::SpringJoint(DIYRigidBody * connection1, DIYRigidBody * connection2, float springCoefficient, float damping)
@@ -143,6 +144,7 @@ void SpringJoint::Update(glm::vec3 gravity, float timeStep)
 	glm::vec3 dampingVector = m_damping * (m_connections[1]->m_velocity - m_connections[0]->m_velocity);
 	//m_connections[1]->ApplyForce(-m_springCoefficient * (restingDisplacement - displacement));// -dampingVector);
 	m_connections[1]->ApplyForce(-m_springCoefficient * (restingDisplacement - displacement) - dampingVector);
+	//m_connections[1]->ApplyForceToActor(m_connections[0], 0.5f * (-m_springCoefficient * (restingDisplacement - displacement) - dampingVector));
 }
 
 void SpringJoint::Debug()

@@ -204,9 +204,9 @@ void Physics::DIYPhysicsSetup1()
 	physicsScene->timeStep = .001f;
 
 	//add four balls to the simulation
-	SphereClass* newBall0;
-	newBall0 = new SphereClass(glm::vec3(14, 2, 1), glm::vec3(3, 0, 3), 3.0f, 1, glm::vec4(1, 0, 0, 1));
-	physicsScene->AddActor(newBall0);
+	//SphereClass* newBall0;
+	//newBall0 = new SphereClass(glm::vec3(14, 2, 1), glm::vec3(3, 0, 3), 3.0f, 1, glm::vec4(1, 0, 0, 1));
+	//physicsScene->AddActor(newBall0);
 	
 	SphereClass* newBall1;
 	newBall1 = new SphereClass(glm::vec3(0, 4, 10), glm::vec3(0, 0, -3), 3.0f, 1, glm::vec4(1, 0, 0, 1), false);
@@ -215,14 +215,14 @@ void Physics::DIYPhysicsSetup1()
 	BoxClass* newBox00;
 	newBox00 = new BoxClass(glm::vec3(3, 2.f, 1), glm::vec3(-4.f, 0, 0), 3.0f, 1.f, 1.f, 1.f, glm::vec4(1, 0, 0, 1), false);
 	physicsScene->AddActor(newBox00);
-	
-	BoxClass* newBox11;
-	newBox11 = new BoxClass(glm::vec3(0.0f, 3.5, 0), glm::vec3(0, 0, 0), 3.0f, 1.f, 1.f, 2.f, glm::vec4(1, 0, 0, 1), false);
-	physicsScene->AddActor(newBox11);
-
-	BoxClass* newBox12;
-	newBox12 = new BoxClass(glm::vec3(-3.0f, 2.2f, 0), glm::vec3(0.8f, 0, 0), 3.0f, 1.f, 1.f, 2.f, glm::vec4(1, 0, 0, 1), false);
-	physicsScene->AddActor(newBox12);
+	//
+	//BoxClass* newBox11;
+	//newBox11 = new BoxClass(glm::vec3(0.0f, 3.5, 0), glm::vec3(0, 0, 0), 3.0f, 1.f, 1.f, 2.f, glm::vec4(1, 0, 0, 1), false);
+	//physicsScene->AddActor(newBox11);
+	//
+	//BoxClass* newBox12;
+	//newBox12 = new BoxClass(glm::vec3(-3.0f, 2.2f, 0), glm::vec3(0.8f, 0, 0), 3.0f, 1.f, 1.f, 2.f, glm::vec4(1, 0, 0, 1), false);
+	//physicsScene->AddActor(newBox12);
 
 	
 	

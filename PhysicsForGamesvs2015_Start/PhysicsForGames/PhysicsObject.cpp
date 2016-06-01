@@ -10,7 +10,7 @@ DIYRigidBody::DIYRigidBody(glm::vec3 _position, glm::vec3 _velocity, glm::quat _
 	m_velocity = _velocity;
 	//roation2D = _rotation;
 	SetMass(_mass);
-	PhysicsObject::SetStaticValue(isStatic);
+	SetStaticValue(isStatic);
 }
 
 void DIYRigidBody::Update(glm::vec3 gravity, float timeStep)

@@ -142,7 +142,7 @@ void DIYPhysicsScene::CollisionSeperate(PhysicsObject* obj1, PhysicsObject* obj2
 void DIYPhysicsScene::CollisionResponse(PhysicsObject* obj1, PhysicsObject* obj2, float overlap, glm::vec3 normal)
 {
 	//Static && Static
-	if ((obj1->GetStaticValue() == false) && (obj2->GetStaticValue() == false))
+	if ((obj1->GetStaticValue() == true) && (obj2->GetStaticValue() == true))
 		return;
 
 	//Seperate
@@ -185,7 +185,7 @@ void DIYPhysicsScene::DyanmicStaticCollision(PhysicsObject* obj1, PhysicsObject*
 	float velocityAlongNormal = glm::dot(relativeVelocity, normal);
 	float impulseAmount = -(-2) * velocityAlongNormal;
 	//					 -(1 + CoefficientOfRestitution) * velocityAlongNormal
-	impulseAmount /= 1 / obj1->GetMass() + 1 / obj2->GetMass();
+	impulseAmount /= (1 / obj1->GetMass() + 1 / obj2->GetMass());
 
 	glm::vec3 impulse = impulseAmount * normal;
 	object1->m_velocity += (1 / object1->GetMass() * -impulse);
@@ -305,11 +305,12 @@ bool DIYPhysicsScene::Sphere2Sphere(PhysicsObject* obj1, PhysicsObject* obj2)
 			glm::vec3 collisionVector = collisionNormal * (glm::dot(relativeVelocity, collisionNormal));
 			glm::vec3 forceVector = collisionVector * 1.0f / (1 / sphere1->GetMass() + 1 / sphere2->GetMass());
 			//use newtons third law to apply collision forces to colliding bodies
-			sphere1->ApplyForceToActor(sphere2, 2 * forceVector);
-			//move our sphere out of collisions
-			glm::vec3 seperationVector = collisionNormal * intersection * 0.5f;
-			sphere1->m_position -= seperationVector;
-			sphere2->m_position += seperationVector;
+			CollisionResponse(sphere1, sphere2, intersection, collisionNormal);
+			//sphere1->ApplyForceToActor(sphere2, 2 * forceVector);
+			////move our sphere out of collisions
+			//glm::vec3 seperationVector = collisionNormal * intersection * 0.5f;
+			//sphere1->m_position -= seperationVector;
+			//sphere2->m_position += seperationVector;
 			return true;
 		}
 	}
@@ -359,17 +360,22 @@ bool DIYPhysicsScene::Sphere2Box(PhysicsObject* obj1, PhysicsObject* obj2)
 			glm::vec3 collisionVector = collisionNormal * (glm::dot(relativeVelocity, collisionNormal));
 			glm::vec3 forceVector = collisionVector * 1.0f / (1 / sphere1->GetMass() + 1 / box2->GetMass());
 			//Newtons Third Law
-			sphere1->ApplyForceToActor(box2, forceVector * 2);
-			//Seperate Objects
-			if (sphere1->GetStaticValue())
-				box2->m_position += overlap * glm::normalize(clampedDistance) * 0.5f;
-			else 
-				sphere1->m_position -= overlap * glm::normalize(clampedDistance) * 0.5f;
+			CollisionResponse(box2, sphere1, -overlap, glm::normalize(clampedDistance));
 
-			if (box2->GetStaticValue())
-				sphere1->m_position -= overlap * glm::normalize(clampedDistance) * 0.5f;
-			else
-				box2->m_position += overlap * glm::normalize(clampedDistance) * 0.5f;
+			//sphere1->ApplyForceToActor(box2, forceVector * 2);
+			////Seperate Objects
+			//if (sphere1->GetStaticValue())
+			//	box2->m_position += overlap * glm::normalize(clampedDistance) * 0.5f;
+			//else 
+			//	sphere1->m_position -= overlap * glm::normalize(clampedDistance) * 0.5f;
+			//
+			//if (box2->GetStaticValue())
+			//	sphere1->m_position -= overlap * glm::normalize(clampedDistance) * 0.5f;
+			//else
+			//	box2->m_position += overlap * glm::normalize(clampedDistance) * 0.5f;
+
+
+
 
 			//sphere1->m_position -= overlap * glm::normalize(clampedDistance) * 0.5f;
 			//box2->m_position += overlap * glm::normalize(clampedDistance) * 0.5f;

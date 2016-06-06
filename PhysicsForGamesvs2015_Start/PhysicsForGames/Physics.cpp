@@ -30,12 +30,20 @@ bool Physics::startup()
 	m_renderer = new Renderer();
 	
 	DIYPhysicsSetup1();
+	PhysXSetup();
+	SetUpVisualDebugger();
+	setupTuorial1();
 
     return true;
 }
 
 void Physics::shutdown()
 {
+
+	g_PhysicsScene->release();
+	g_Physics->release();
+	g_PhysicsFoundation->release();
+
 	delete m_renderer;
     Gizmos::destroy();
     Application::shutdown();
@@ -67,9 +75,11 @@ bool Physics::update()
 
     m_camera.update(1.0f / 60.0f);
 
-	physicsScene->Update(m_window, m_delta_time);
+	//Update Custom Physics
+	//physicsScene->Update(m_window, m_delta_time);
 
-	
+	//Update Physx
+	UpdatePhysx(m_delta_time);
 
     return true;
 }
@@ -82,7 +92,10 @@ void Physics::draw()
 
     m_renderer->RenderAndClear(m_camera.view_proj);
 
-	physicsScene->AddGizmos();
+	//Draw Custom Physics
+	//physicsScene->AddGizmos();
+
+
 	//Gizmos::addSphere(glm::vec3(0, 0, 0), 1, 8, 8, glm::vec4(1, 0, 1, 1));
 	//Gizmos::addSphere(glm::vec3(0, 0, 0), 1, 8, 8, glm::vec4(1, 1, 0, 1));
 	//Gizmos::addSphereFilled(glm::vec3(0, 0, 0), 1, 8, 8, glm::vec4(1, 1, 0, 1));
@@ -313,5 +326,159 @@ void Physics::DIYPhysicsSetup1()
 	{
 		physicsScene->AddActor(joint[i]);
 	}
+}
+
+void Physics::PhysXSetup()
+{
+	PxAllocatorCallback *myCallback = new myAllocator();
+	g_PhysicsFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, *myCallback, gDefaultErrorCallBack);
+	g_Physics = PxCreatePhysics(PX_PHYSICS_VERSION, *g_PhysicsFoundation, PxTolerancesScale());
+	PxInitExtensions(*g_Physics);
+	//create Physics Material
+	g_PhysicsMaterial = g_Physics->createMaterial(0.5f, 0.5f, 0.5f);
+	PxSceneDesc sceneDesc(g_Physics->getTolerancesScale());
+	sceneDesc.gravity = PxVec3(0, -10.0f, 0);
+	sceneDesc.filterShader = &physx::PxDefaultSimulationFilterShader;
+	sceneDesc.cpuDispatcher = PxDefaultCpuDispatcherCreate(1);
+	g_PhysicsScene = g_Physics->createScene(sceneDesc);
+}
+
+void Physics::UpdatePhysx(float a_deltaTime)
+{
+	if (a_deltaTime <= 0)
+		return;
+	if (glfwGetKey(m_window, GLFW_KEY_1))
+	{
+		if (canShoot)
+		{
+			canShoot = false;
+			//Transform
+			glm::vec3 cam_pos = glm::vec3(m_camera.world[3]);
+			glm::vec3 box_vel = glm::vec3(-m_camera.world[2]);
+			PxTransform box_transform(PxVec3(cam_pos.x, cam_pos.y, cam_pos.z));
+			//geometry
+			PxSphereGeometry sphere(0.5f);
+			//Density
+			float density = 10;
+			//Material 
+			PxRigidDynamic* new_actor = PxCreateDynamic(*g_Physics, box_transform, sphere, *g_PhysicsMaterial, density);
+			glm::vec3 direction(m_camera.world[2]);
+			physx::PxVec3 velocity = physx::PxVec3(direction.x, direction.y, direction.z) * -40;
+			new_actor->setLinearVelocity(velocity, true);
+			g_PhysicsScene->addActor(*new_actor);
+		}
+	}
+	else if (glfwGetKey(m_window, GLFW_KEY_2))
+	{
+		if (canShoot)
+		{
+			canShoot = false;
+			//Transform
+			glm::vec3 cam_pos = glm::vec3(m_camera.world[3]);
+			glm::vec3 box_vel = glm::vec3(-m_camera.world[2]);
+			PxTransform box_transform(PxVec3(cam_pos.x, cam_pos.y, cam_pos.z));
+			//geometry
+			PxBoxGeometry box(0.5f, 0.5f, 0.5f);
+			//Density
+			float density = 10;
+			//Material 
+			PxRigidDynamic* new_actor = PxCreateDynamic(*g_Physics, box_transform, box, *g_PhysicsMaterial, density);
+			glm::vec3 direction(m_camera.world[2]);
+			physx::PxVec3 velocity = physx::PxVec3(direction.x, direction.y, direction.z) * -40;
+			new_actor->setLinearVelocity(velocity, true);
+			g_PhysicsScene->addActor(*new_actor);
+		}
+	}
+	else if (glfwGetKey(m_window, GLFW_KEY_3))
+	{
+		if (canShoot)
+		{
+			canShoot = false;
+			//Transform
+			glm::vec3 cam_pos = glm::vec3(m_camera.world[3]);
+			glm::vec3 box_vel = glm::vec3(-m_camera.world[2]);
+			PxTransform box_transform(PxVec3(cam_pos.x, cam_pos.y, cam_pos.z));
+			//geometry
+			PxCapsuleGeometry capsule(0.5f, 2.f);
+			//Density
+			float density = 10;
+			//Material 
+			PxRigidDynamic* new_actor = PxCreateDynamic(*g_Physics, box_transform, capsule, *g_PhysicsMaterial, density);
+			glm::vec3 direction(m_camera.world[2]);
+			physx::PxVec3 velocity = physx::PxVec3(direction.x, direction.y, direction.z) * -40;
+			new_actor->setLinearVelocity(velocity, true);
+			g_PhysicsScene->addActor(*new_actor);
+		}
+	}
+	else
+		canShoot = true;
+
+	g_PhysicsScene->simulate(a_deltaTime);
+	while (g_PhysicsScene->fetchResults() == false)
+	{
+
+	}
+	renderGizmos(g_PhysicsScene);
+}
+
+void Physics::SetUpVisualDebugger()
+{
+	//check if PvdConnection manager is available on this platform
+	if (g_Physics->getPvdConnectionManager() == NULL)
+		return;
+	//set up connection parameters
+	const char* pvd_host_ip = "127.0.0.1";
+	//IP of the PC which is running PVD
+	int port = 5425;
+	//TCP port to connect to, where PVD is listening
+	unsigned int timeout = 100;
+	//timeout in milliseconds to wait for PVD to respond,
+	//consoles and remote PCs need a higher timeout.
+	PxVisualDebuggerConnectionFlags connectionFlags = PxVisualDebuggerExt::getAllConnectionFlags();
+	// and now try to connectPxVisualDebuggerExt
+	auto theConnection = PxVisualDebuggerExt::createConnection(g_Physics->getPvdConnectionManager(), pvd_host_ip, port, timeout, connectionFlags);
+}
+
+void Physics::setupTuorial1()
+{
+	
+	//add a plane
+	PxTransform pose = PxTransform(PxVec3(0.0f, 0, 0.0f), PxQuat(PxHalfPi * 1.0f, PxVec3(0.0f, 0.0f, 1.0f)));
+	PxRigidStatic* plane = PxCreateStatic(*g_Physics, pose, PxPlaneGeometry(), *g_PhysicsMaterial);
+	//add it to the physX scene
+	g_PhysicsScene->addActor(*plane);
+
+	//add a box
+	float density = 10;
+	PxBoxGeometry box(2, 2, 2);
+	PxTransform transform(PxVec3(0, 5, 0));
+	PxRigidDynamic* dynamicActor = PxCreateDynamic(*g_Physics, transform, box, *g_PhysicsMaterial, density);
+	//add it to the PhysX scene
+	g_PhysicsScene->addActor(*dynamicActor);
+
+	RagdollNode* ragdollData[] =
+	{
+		new RagdollNode(PxQuat(PxPi / 2.0f, Z_AXIS), NO_PARENT,1,3,1,1,"lower spine"),
+		new RagdollNode(PxQuat(PxPi, Z_AXIS), LOWER_SPINE, 1,1,-1,1,"left pelvis"),
+		new RagdollNode(PxQuat(0, Z_AXIS), LOWER_SPINE, 1,1,-1, 1,"right pelvis"),
+		new RagdollNode(PxQuat(PxPi / 2.0f + 0.2f, Z_AXIS),LEFT_PELVIS,5,2,-1,1,"L upper leg"),
+		new RagdollNode(PxQuat(PxPi / 2.0f - 0.2f, Z_AXIS),RIGHT_PELVIS,5,2,-1,1,"R upper leg"),
+		new RagdollNode(PxQuat(PxPi / 2.0f + 0.2f, Z_AXIS),LEFT_UPPER_LEG,5,1.75,-1,1,"L lower leg"),
+		new RagdollNode(PxQuat(PxPi / 2.0f - 0.2f, Z_AXIS),RIGHT_UPPER_LEG,5,1.75,-1,1,"R lowerleg"),
+		new RagdollNode(PxQuat(PxPi / 2.0f, Z_AXIS), LOWER_SPINE, 1, 3, 1, -1, "upper spine"),
+		new RagdollNode(PxQuat(PxPi, Z_AXIS), UPPER_SPINE, 1, 1.5, 1, 1, "left clavicle"),
+		new RagdollNode(PxQuat(0, Z_AXIS), UPPER_SPINE, 1, 1.5, 1, 1, "right clavicle"),
+		new RagdollNode(PxQuat(PxPi / 2.0f, Z_AXIS), UPPER_SPINE, 1, 1, 1, -1, "neck"),
+		new RagdollNode(PxQuat(PxPi / 2.0f, Z_AXIS), NECK, 1, 3, 1, -1, "HEAD"),
+		new RagdollNode(PxQuat(PxPi - .3, Z_AXIS), LEFT_CLAVICLE, 3, 1.5, -1, 1, "left upper arm"),
+		new RagdollNode(PxQuat(0.3, Z_AXIS), RIGHT_CLAVICLE, 3, 1.5, -1, 1, "right upper arm"),
+		new RagdollNode(PxQuat(PxPi - .3, Z_AXIS), LEFT_UPPER_ARM, 3, 1, -1, 1, "left lower arm"),
+		new RagdollNode(PxQuat(0.3, Z_AXIS), RIGHT_UPPER_ARM, 3, 1, -1, 1, "right lower arm"),
+		NULL
+	};
+
+	PxArticulation* ragdollArticulation;
+	ragdollArticulation = RagdollNode::MakeRagdoll(g_Physics, ragdollData, PxTransform(PxVec3(0, 0, 0)), .1f, g_PhysicsMaterial);
+	g_PhysicsScene->addArticulation(*ragdollArticulation);
 }
 

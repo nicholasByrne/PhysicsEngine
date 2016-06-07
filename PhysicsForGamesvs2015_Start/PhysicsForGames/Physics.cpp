@@ -8,6 +8,12 @@
 #include "glm/gtc/quaternion.hpp"
 
 #include "PhysicsObject.h"
+#include "MyCollisionCallBack.h"
+
+#include "MyControllerHitReport.h"
+#include "physx\characterkinematic\PxCapsuleController.h"
+#include "physx\characterkinematic\PxController.h"
+#include "physx\characterkinematic\PxControllerManager.h"
 
 #define Assert(val) if (val){}else{ *((char*)0) = 0;}
 #define ArrayCount(val) (sizeof(val)/sizeof(val[0]))
@@ -341,6 +347,11 @@ void Physics::PhysXSetup()
 	sceneDesc.filterShader = &physx::PxDefaultSimulationFilterShader;
 	sceneDesc.cpuDispatcher = PxDefaultCpuDispatcherCreate(1);
 	g_PhysicsScene = g_Physics->createScene(sceneDesc);
+	//Trigger callback
+	PxSimulationEventCallback* myCollisionCallBack = new MyCollisionCallBack();
+	g_PhysicsScene->setSimulationEventCallback(myCollisionCallBack);
+	sceneDesc.filterShader = MyCollisionCallBack::myFilterShader; //how does this work?
+
 }
 
 void Physics::UpdatePhysx(float a_deltaTime)
@@ -365,6 +376,8 @@ void Physics::UpdatePhysx(float a_deltaTime)
 			glm::vec3 direction(m_camera.world[2]);
 			physx::PxVec3 velocity = physx::PxVec3(direction.x, direction.y, direction.z) * -40;
 			new_actor->setLinearVelocity(velocity, true);
+			new_actor->setName("Sphere");
+			MyCollisionCallBack::SetUpPFiltering(new_actor, FilterGroup::ePLAYER, FilterGroup::eGROUND); //sets up collision filtering for our player
 			g_PhysicsScene->addActor(*new_actor);
 		}
 	}
@@ -386,6 +399,8 @@ void Physics::UpdatePhysx(float a_deltaTime)
 			glm::vec3 direction(m_camera.world[2]);
 			physx::PxVec3 velocity = physx::PxVec3(direction.x, direction.y, direction.z) * -40;
 			new_actor->setLinearVelocity(velocity, true);
+			new_actor->setName("Box");
+			MyCollisionCallBack::SetUpPFiltering(new_actor, FilterGroup::eGROUND, FilterGroup::ePLAYER); //set up collision filtering for ground
 			g_PhysicsScene->addActor(*new_actor);
 		}
 	}
@@ -407,11 +422,59 @@ void Physics::UpdatePhysx(float a_deltaTime)
 			glm::vec3 direction(m_camera.world[2]);
 			physx::PxVec3 velocity = physx::PxVec3(direction.x, direction.y, direction.z) * -40;
 			new_actor->setLinearVelocity(velocity, true);
+			new_actor->setName("Capsule");
+			MyCollisionCallBack::SetUpPFiltering(new_actor, FilterGroup::ePLAYER, FilterGroup::eGROUND | FilterGroup::ePLATFORM); //set up collision filtering for our player with ground and platform
 			g_PhysicsScene->addActor(*new_actor);
 		}
 	}
 	else
 		canShoot = true;
+
+	//Update Player Controller
+	bool onGround; //set to true if we are on the ground
+	float movementSpeed = 10.0f; //forward and back movement speed
+	float rotationSpeed = 1.0f; //turn speed
+	//check if we have contact normal. if y is greater than .3 we assume this is solid ground
+	if (myHitReport->getPlayerContactNormal().y > 0.3f)
+	{
+		_characterYVelocity = -0.1f;
+		onGround = true;
+	}
+	else
+	{
+		_characterYVelocity += _playerGravity * a_deltaTime;
+		onGround = false;
+	}
+	myHitReport->ClearPlayerContactNormal();
+	const PxVec3 Up(0, 1, 0);
+	//scan the keys and set up our intended velocity based on a global transform
+	PxVec3 velocity(0, _characterYVelocity, 0);
+	//if (glfwGetKey(m_window, GLFW_KEY_UP) == GLFW_PRESS)
+	if ((glfwGetKey(m_window, GLFW_KEY_R)))
+	{
+		velocity.x -= movementSpeed * a_deltaTime;
+	}
+	if (glfwGetKey(m_window, GLFW_KEY_DOWN) == GLFW_PRESS)
+	{
+		velocity.x += movementSpeed * a_deltaTime;
+	}
+	//todo add z movement and jumping
+	float minDistance = 0.001f;
+	PxControllerFilters filter;
+	//make controls relative to player facing
+	PxQuat rotation(_characterRotation, PxVec3(0, 1, 0));
+	PxVec3 velocity1(0, _characterYVelocity, 0);
+	//move the controller
+	gPlayerController->move(rotation.rotate(velocity1), minDistance, a_deltaTime, filter);
+
+
+	//Update fluid dynamics
+	if (m_particleEmitter)
+	{
+		m_particleEmitter->update(a_deltaTime);
+		//render all our particles
+		m_particleEmitter->renderParticles();
+	}
 
 	g_PhysicsScene->simulate(a_deltaTime);
 	while (g_PhysicsScene->fetchResults() == false)
@@ -453,8 +516,19 @@ void Physics::setupTuorial1()
 	PxBoxGeometry box(2, 2, 2);
 	PxTransform transform(PxVec3(0, 5, 0));
 	PxRigidDynamic* dynamicActor = PxCreateDynamic(*g_Physics, transform, box, *g_PhysicsMaterial, density);
+	//MyCollisionCallBack::SetShapeAsTrigger(dynamicActor);
 	//add it to the PhysX scene
 	g_PhysicsScene->addActor(*dynamicActor);
+
+	//add a box
+	PxBoxGeometry box1(2, 2, 2);
+	PxTransform transform1(PxVec3(20, 15, 0));
+	PxRigidStatic* staticActor = PxCreateStatic(*g_Physics, transform1, box1, *g_PhysicsMaterial);
+	//PxRigidStatic* dynamicActor = PxCreateStatic(*g_Physics, transform, box, *g_PhysicsMaterial, density);
+	staticActor->setName("Box Trigger");
+	MyCollisionCallBack::SetShapeAsTrigger(staticActor);	
+	//add it to the PhysX scene
+	g_PhysicsScene->addActor(*staticActor);
 
 	RagdollNode* ragdollData[] =
 	{
@@ -480,5 +554,68 @@ void Physics::setupTuorial1()
 	PxArticulation* ragdollArticulation;
 	ragdollArticulation = RagdollNode::MakeRagdoll(g_Physics, ragdollData, PxTransform(PxVec3(0, 0, 0)), .1f, g_PhysicsMaterial);
 	g_PhysicsScene->addArticulation(*ragdollArticulation);
+
+	//Fluid dynamics
+	//PxTransform pose = PxTransform(PxVec3(0.0f, 0, 0.0f), PxQuat(PxHalfPi, PxVec3(0.0f, 0.0f, 1.0f)));
+	//PxRigidStatic* plane1 = PxCreateStatic(*g_Physics, pose, PxPlaneGeometry(), *g_PhysicsMaterial);
+	//const PxU32 numShapes = plane1->getNbShapes();
+
+	//PxBoxGeometry side1(4.5, 1, 0.5);
+	//PxBoxGeometry side2(.5, 1, 4.5);
+	//pose = PxTransform(PxVec3(0.0f, 0.5, 4.0f));
+	//PxRigidStatic* Box = PxCreateStatic(*g_Physics, pose, side1, *g_PhysicsMaterial);
+
+	//g_PhysicsScene->addActor(*box);
+
+	PxParticleFluid* pf;
+
+	//create particle system in PhysX SDK
+	//set immutable properties
+	PxU32 maxParticles = 4000;
+	bool perParticleRestOffset = false;
+	pf = g_Physics->createParticleFluid(maxParticles, perParticleRestOffset);
+
+	pf->setRestParticleDistance(.3f);
+	pf->setDynamicFriction(0.1f);
+	pf->setStaticFriction(0.1f);
+	pf->setDamping(0.1);
+	pf->setParticleMass(.1);
+	pf->setRestitution(0);
+	pf->setParticleBaseFlag(PxParticleBaseFlag::eCOLLISION_TWOWAY, true);
+	pf->setStiffness(100);
+
+	if (pf)
+	{
+		g_PhysicsScene->addActor(*pf);
+		//m_particleEmitter = new ParticleEmitter(maxParticles, PxVec3(0, 10, 0), pf, .01);
+		//m_particleEmitter->setStartVelocityRange(-2.0f, 0, -2.0f, 2.0f, 0.0f, 2.0f);
+
+		m_particleEmitter = new ParticleFluidEmitter(maxParticles, PxVec3(0, 10, 0), pf, .1);
+		m_particleEmitter->setStartVelocityRange(-.001f, -250.0f, -0.001f, 0.001f, -250.0f, 0.001f);
+	}
+
+	//Player Controller
+	myHitReport = new MyControllerHitReport();
+	gCharacterManager = PxCreateControllerManager(*g_PhysicsScene);
+	//describe our controller
+	PxCapsuleControllerDesc desc;
+	desc.height = 1.6f;
+	desc.radius = 0.4f;
+	desc.position.set(0, 0, 0);
+	desc.material = g_PhysicsMaterial;
+	desc.reportCallback = myHitReport; //connect it to our collision detection routine
+	desc.density = 10;
+	//create the layer controller
+	gPlayerController = gCharacterManager->createController(desc);
+
+	gPlayerController->setPosition(PxExtendedVec3(10, 10, 10));
+	//set up some variables to control our player with
+	_characterYVelocity = 0; //initialize character velocity
+	_characterRotation = 0; //and rotation
+	_playerGravity = -0.5f;
+	myHitReport->ClearPlayerContactNormal(); //initialize the contact normal (what we are in contact with)
+	g_PhysicsScene->addActor(*gPlayerController->getActor()); //so we can draw its gizmo
+	
+
 }
 

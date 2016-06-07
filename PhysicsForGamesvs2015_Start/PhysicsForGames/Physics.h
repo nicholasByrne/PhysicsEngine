@@ -10,6 +10,8 @@
 #include <PxScene.h>
 #include <pvd\PxVisualDebugger.h>
 #include "Ragdoll.h"
+#include "ParticleEmitter.h"
+#include "ParticleFluidEmitter.h"
 
 using namespace physx;
 //class PxFoundation;
@@ -20,6 +22,7 @@ using namespace physx;
 //class PxSimulationFilterShader;
 //class PxMaterial;
 //class PxCooking;
+class MyControllerHitReport;
 
 class myAllocator : public PxAllocatorCallback
 {
@@ -73,6 +76,16 @@ public:
 	PxMaterial* g_PhysicsMaterial;
 	PxMaterial* g_boxMaterial;
 	PxCooking* g_PhysicsCooker;
+	//ParticleEmitter* m_particleEmitter;
+	ParticleFluidEmitter* m_particleEmitter;
+
+	MyControllerHitReport* myHitReport;
+	PxControllerManager* gCharacterManager;
+	PxController* gPlayerController;
+	float _characterYVelocity;
+	float _characterRotation;
+	float _playerGravity;
+
 };
 
 

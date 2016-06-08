@@ -48,6 +48,8 @@ public:
     virtual bool update();
     virtual void draw();
 
+	vec4 geo_color;
+	bool changeRenderColour;
 	void renderGizmos(PxScene* physics_scene);
 
     Renderer* m_renderer;

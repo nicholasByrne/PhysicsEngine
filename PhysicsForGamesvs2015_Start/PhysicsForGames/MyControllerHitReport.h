@@ -1,5 +1,6 @@
 #pragma once
 #include <PxPhysicsAPI.h>
+#include "glm\glm.hpp"
 
 using namespace physx;
 
@@ -21,5 +22,7 @@ public:
 	PxVec3 getPlayerContactNormal() { return _playerContactNormal; };
 	void ClearPlayerContactNormal() { _playerContactNormal = PxVec3(0, 0, 0); };
 	PxVec3 _playerContactNormal;
+
+	//static glm::vec4 RenderColour;
 };
 

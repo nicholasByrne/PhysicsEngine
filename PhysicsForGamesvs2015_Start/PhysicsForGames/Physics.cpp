@@ -15,6 +15,9 @@
 #include "physx\characterkinematic\PxController.h"
 #include "physx\characterkinematic\PxControllerManager.h"
 
+//#include <cstdlib> //rand
+
+
 #define Assert(val) if (val){}else{ *((char*)0) = 0;}
 #define ArrayCount(val) (sizeof(val)/sizeof(val[0]))
 
@@ -34,7 +37,10 @@ bool Physics::startup()
     m_camera.sensitivity = 3;
 
 	m_renderer = new Renderer();
-	
+	geo_color = vec4(1, 0, 0, 1);
+	changeRenderColour = false;
+	//MyControllerHitReport::RenderColour = geo_color;
+
 	DIYPhysicsSetup1();
 	PhysXSetup();
 	SetUpVisualDebugger();
@@ -161,7 +167,14 @@ void Physics::renderGizmos(PxScene* physics_scene)
     PxActor** actor_list = new PxActor*[actor_count];
 	physics_scene->getActors(desiredTypes, actor_list, actor_count);
     
-    vec4 geo_color(1, 0, 0, 1);
+    //vec4 geo_color(1, 0, 0, 1);
+	//geo_color = MyControllerHitReport::RenderColour;
+	if (changeRenderColour)
+	{
+		geo_color = glm::vec4((float)(rand() % 100) / 100, (float)(rand() % 100) / 100, (float)(rand() % 100) / 100, 1);
+		changeRenderColour = false;
+	}
+
     for (int actor_index = 0;
         actor_index < (int)actor_count;
         ++actor_index)
@@ -450,22 +463,34 @@ void Physics::UpdatePhysx(float a_deltaTime)
 	//scan the keys and set up our intended velocity based on a global transform
 	PxVec3 velocity(0, _characterYVelocity, 0);
 	//if (glfwGetKey(m_window, GLFW_KEY_UP) == GLFW_PRESS)
-	if ((glfwGetKey(m_window, GLFW_KEY_R)))
+	if ((glfwGetKey(m_window, GLFW_KEY_UP)))
 	{
 		velocity.x -= movementSpeed * a_deltaTime;
 	}
-	if (glfwGetKey(m_window, GLFW_KEY_DOWN) == GLFW_PRESS)
+	if (glfwGetKey(m_window, GLFW_KEY_DOWN))
 	{
 		velocity.x += movementSpeed * a_deltaTime;
+	}
+	if (glfwGetKey(m_window, GLFW_KEY_LEFT))
+	{
+		velocity.z += movementSpeed * a_deltaTime;
+	}
+	if (glfwGetKey(m_window, GLFW_KEY_RIGHT))
+	{
+		velocity.z -= movementSpeed * a_deltaTime;
+	}
+	if (glfwGetKey(m_window, GLFW_KEY_SPACE) && onGround)
+	{
+		velocity.y += 10 * movementSpeed * a_deltaTime;
 	}
 	//todo add z movement and jumping
 	float minDistance = 0.001f;
 	PxControllerFilters filter;
 	//make controls relative to player facing
 	PxQuat rotation(_characterRotation, PxVec3(0, 1, 0));
-	PxVec3 velocity1(0, _characterYVelocity, 0);
+	//PxVec3 velocity1(0, _characterYVelocity, 0);
 	//move the controller
-	gPlayerController->move(rotation.rotate(velocity1), minDistance, a_deltaTime, filter);
+	gPlayerController->move(rotation.rotate(velocity), minDistance, a_deltaTime, filter);
 
 
 	//Update fluid dynamics
@@ -508,6 +533,7 @@ void Physics::setupTuorial1()
 	//add a plane
 	PxTransform pose = PxTransform(PxVec3(0.0f, 0, 0.0f), PxQuat(PxHalfPi * 1.0f, PxVec3(0.0f, 0.0f, 1.0f)));
 	PxRigidStatic* plane = PxCreateStatic(*g_Physics, pose, PxPlaneGeometry(), *g_PhysicsMaterial);
+	plane->userData = this;
 	//add it to the physX scene
 	g_PhysicsScene->addActor(*plane);
 
@@ -516,17 +542,19 @@ void Physics::setupTuorial1()
 	PxBoxGeometry box(2, 2, 2);
 	PxTransform transform(PxVec3(0, 5, 0));
 	PxRigidDynamic* dynamicActor = PxCreateDynamic(*g_Physics, transform, box, *g_PhysicsMaterial, density);
+	dynamicActor->userData = this;
 	//MyCollisionCallBack::SetShapeAsTrigger(dynamicActor);
 	//add it to the PhysX scene
 	g_PhysicsScene->addActor(*dynamicActor);
 
 	//add a box
 	PxBoxGeometry box1(2, 2, 2);
-	PxTransform transform1(PxVec3(20, 15, 0));
+	PxTransform transform1(PxVec3(20, 5, 0));
 	PxRigidStatic* staticActor = PxCreateStatic(*g_Physics, transform1, box1, *g_PhysicsMaterial);
 	//PxRigidStatic* dynamicActor = PxCreateStatic(*g_Physics, transform, box, *g_PhysicsMaterial, density);
 	staticActor->setName("Box Trigger");
-	MyCollisionCallBack::SetShapeAsTrigger(staticActor);	
+	MyCollisionCallBack::SetShapeAsTrigger(staticActor);
+	staticActor->userData = this;
 	//add it to the PhysX scene
 	g_PhysicsScene->addActor(*staticActor);
 
@@ -552,7 +580,8 @@ void Physics::setupTuorial1()
 	};
 
 	PxArticulation* ragdollArticulation;
-	ragdollArticulation = RagdollNode::MakeRagdoll(g_Physics, ragdollData, PxTransform(PxVec3(0, 0, 0)), .1f, g_PhysicsMaterial);
+	ragdollArticulation = RagdollNode::MakeRagdoll(g_Physics, ragdollData, PxTransform(PxVec3(5, 2, 10)), .1f, g_PhysicsMaterial);
+	ragdollArticulation->userData = this;
 	g_PhysicsScene->addArticulation(*ragdollArticulation);
 
 	//Fluid dynamics
@@ -582,7 +611,7 @@ void Physics::setupTuorial1()
 	pf->setParticleMass(.1);
 	pf->setRestitution(0);
 	pf->setParticleBaseFlag(PxParticleBaseFlag::eCOLLISION_TWOWAY, true);
-	pf->setStiffness(100);
+	pf->setStiffness(1);
 
 	if (pf)
 	{
@@ -614,6 +643,8 @@ void Physics::setupTuorial1()
 	_characterRotation = 0; //and rotation
 	_playerGravity = -0.5f;
 	myHitReport->ClearPlayerContactNormal(); //initialize the contact normal (what we are in contact with)
+	gPlayerController->getActor()->setName("Player");
+	gPlayerController->getActor()->userData = this;
 	g_PhysicsScene->addActor(*gPlayerController->getActor()); //so we can draw its gizmo
 	
 

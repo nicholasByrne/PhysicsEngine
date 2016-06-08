@@ -1,6 +1,6 @@
 #include "MyCollisionCallBack.h"
 #include <iostream>
-
+#include "Physics.h"
 
 
 //MyCollisionCallBack::MyCollisionCallBack()
@@ -33,6 +33,8 @@ void MyCollisionCallBack::onTrigger(PxTriggerPair * pairs, PxU32 nbPairs)
 	{
 		PxTriggerPair* pair = pairs + i;
 		PxActor* triggerActor = pair->triggerActor;
+		
+
 		PxActor* otherActor = pair->otherActor;
 		const char* pName = otherActor->getName();
 		if( pName!=nullptr )
@@ -42,6 +44,16 @@ void MyCollisionCallBack::onTrigger(PxTriggerPair * pairs, PxU32 nbPairs)
 		if (pName1 != nullptr)
 			std::cout << triggerActor->getName() << std::endl;
 		
+		if (pName == "Box Trigger" || pName1 == "Box Trigger")
+		{
+			Physics* pPhysics = static_cast<Physics*>(triggerActor->userData);
+			if (pPhysics != nullptr)
+			{
+				//pPhysics->StartRagdoll();
+				pPhysics->changeRenderColour = true;
+			}
+		}
+
 	}
 }
 

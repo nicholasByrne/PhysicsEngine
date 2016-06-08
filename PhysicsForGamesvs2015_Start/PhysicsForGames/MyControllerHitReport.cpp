@@ -24,4 +24,6 @@ void MyControllerHitReport::onShapeHit(const PxControllerShapeHit & hit)
 	{
 		//this is wehre we cna apply forces to things we hit
 	}
+
+	//PxRigidStatic* myStaticActor = actor->is<PxRigidStatic>();
 }

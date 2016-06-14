@@ -5,9 +5,11 @@
 #include "GLFW/glfw3.h"
 #include <algorithm>
 #include <iostream>
+#include "Camera.h"
 
 DIYPhysicsScene::DIYPhysicsScene()
 {
+	canShoot = true;
 }
 
 
@@ -24,22 +26,31 @@ void DIYPhysicsScene::RemoveActor(PhysicsObject* actor)
 {
 }
 
-void DIYPhysicsScene::Update(GLFWwindow* window, float fDeltaTime)
+void DIYPhysicsScene::Update(GLFWwindow* window, float fDeltaTime, FlyCamera* camera)
 {
-	//Calculate Timestep?
-	if (glfwGetKey(window, GLFW_KEY_SPACE))
+	if (glfwGetKey(window, GLFW_KEY_Z))
 	{
-		
-		//gravity.y = -9.8;
-		//SphereClass* sphere2 = dynamic_cast<SphereClass*>(actors[9]);
-		//sphere2->ApplyForce(glm::vec3(0, 1, 3));
-		//actors[0]->ApplyForceToActor(actors[1], glm::vec3(1, 1, 1));
-		//SphereClass* sphere2 = dynamic_cast<SphereClass*>(actors[0]);
-		//sphere2->ApplyForce(glm::vec3(0, 0, 1));
-		//std::cout << "Force applied" << std::endl;
-		//BoxClass* Box2 = dynamic_cast<BoxClass*>(actors[0]);
-		//Box2->m_position.x += 0.1f;
+		if (canShoot)
+		{
+			canShoot = false;
+			SphereClass* newBox0;
+			newBox0 = new SphereClass(glm::vec3(camera->world[3]), glm::vec3(-camera->world[2] * 40), 1, 1, glm::vec4(0), false);
+			AddActor(newBox0);
+		}
 	}
+	else if (glfwGetKey(window, GLFW_KEY_X))
+	{
+		if (canShoot)
+		{
+			canShoot = false;
+			BoxClass* newBox0;
+			newBox0 = new BoxClass(glm::vec3(camera->world[3]), glm::vec3(-camera->world[2] *  40), 1, 1, 1, 1, glm::vec4(0), false);
+			AddActor(newBox0);
+		}
+	}
+	else
+		canShoot = true;
+
 
 	//Update actors
 	int i = 0;
@@ -171,7 +182,7 @@ void DIYPhysicsScene::DyanmicDynamicCollision(PhysicsObject* obj1, PhysicsObject
 	//					 -(1 + CoefficientOfRestitution) * velocityAlongNormal
 	impuseAmount /= 1 / object1->GetMass() + 1 / object2->GetMass();
 
-	glm::vec3 impulse = impuseAmount * normal;
+	glm::vec3 impulse = impuseAmount * normal * 0.9f;
 	object1->m_velocity += (1 / object1->GetMass() * -impulse);
 	object2->m_velocity += (1 / object2->GetMass() * +impulse);
 }
@@ -187,7 +198,7 @@ void DIYPhysicsScene::DyanmicStaticCollision(PhysicsObject* obj1, PhysicsObject*
 	//					 -(1 + CoefficientOfRestitution) * velocityAlongNormal
 	impulseAmount /= (1 / obj1->GetMass() + 1 / obj2->GetMass());
 
-	glm::vec3 impulse = impulseAmount * normal;
+	glm::vec3 impulse = impulseAmount * normal * 0.9f;
 	object1->m_velocity += (1 / object1->GetMass() * -impulse);
 }
 

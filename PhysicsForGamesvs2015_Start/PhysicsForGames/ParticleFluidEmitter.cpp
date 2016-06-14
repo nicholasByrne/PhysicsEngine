@@ -22,6 +22,8 @@ ParticleFluidEmitter::ParticleFluidEmitter(int _maxParticles, PxVec3 _position,P
 	{
 		m_activeParticles[index].active = false;
 	}
+
+	spawnParticles = true;
 }
 
 //destructure
@@ -112,7 +114,7 @@ void ParticleFluidEmitter::update(float delta)
 	m_respawnTime+= delta;
 	int numberSpawn = 0;
 	//if respawn time is greater than our release delay then we spawn at least one particle so work out how many to spawn
-	if(m_respawnTime>m_releaseDelay)
+	if(m_respawnTime>m_releaseDelay && spawnParticles == true)
 	{
 		numberSpawn = (int)(m_respawnTime/m_releaseDelay);
 		m_respawnTime -= (numberSpawn * m_releaseDelay);

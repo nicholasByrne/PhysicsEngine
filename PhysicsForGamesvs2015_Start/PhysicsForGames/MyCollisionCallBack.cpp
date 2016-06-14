@@ -44,13 +44,24 @@ void MyCollisionCallBack::onTrigger(PxTriggerPair * pairs, PxU32 nbPairs)
 		if (pName1 != nullptr)
 			std::cout << triggerActor->getName() << std::endl;
 		
-		if (pName == "Box Trigger" || pName1 == "Box Trigger")
+		if (pName1 == "Box Trigger")// || pName == "Box Trigger")
 		{
 			Physics* pPhysics = static_cast<Physics*>(triggerActor->userData);
 			if (pPhysics != nullptr)
 			{
 				//pPhysics->StartRagdoll();
 				pPhysics->changeRenderColour = true;
+				pPhysics->m_particleEmitter->spawnParticles = true;
+			}
+		}
+		if (pName1 == "Box Trigger1")// || pName == "Box Trigger1")
+		{
+			Physics* pPhysics = static_cast<Physics*>(triggerActor->userData);
+			if (pPhysics != nullptr)
+			{
+				//pPhysics->StartRagdoll();
+				pPhysics->changeRenderColour = true;
+				pPhysics->m_particleEmitter->spawnParticles = false;
 			}
 		}
 

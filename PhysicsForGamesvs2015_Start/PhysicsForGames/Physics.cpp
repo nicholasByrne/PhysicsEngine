@@ -88,7 +88,7 @@ bool Physics::update()
     m_camera.update(1.0f / 60.0f);
 
 	//Update Custom Physics
-	//physicsScene->Update(m_window, m_delta_time);
+	physicsScene->Update(m_window, m_delta_time, &m_camera);
 
 	//Update Physx
 	UpdatePhysx(m_delta_time);
@@ -105,7 +105,7 @@ void Physics::draw()
     m_renderer->RenderAndClear(m_camera.view_proj);
 
 	//Draw Custom Physics
-	//physicsScene->AddGizmos();
+	physicsScene->AddGizmos();
 
 
 	//Gizmos::addSphere(glm::vec3(0, 0, 0), 1, 8, 8, glm::vec4(1, 0, 1, 1));
@@ -266,16 +266,16 @@ void Physics::DIYPhysicsSetup1()
 
 	//Boundaries
 	BoxClass* newBox0;
-	newBox0 = new BoxClass(glm::vec3(20, 0, 0), glm::vec3(0, 0, 0), 10000, 2, 8, 40, glm::vec4(0), true);
+	newBox0 = new BoxClass(glm::vec3(20, 8, 0), glm::vec3(0, 0, 0), 10000, 2, 15, 40, glm::vec4(0), true);
 	physicsScene->AddActor(newBox0);
 	BoxClass* newBox1;
-	newBox1 = new BoxClass(glm::vec3(-20, 0, 0), glm::vec3(0, 0, 0), 10000, 2, 8, 40, glm::vec4(0), true);
+	newBox1 = new BoxClass(glm::vec3(-20, 8, 0), glm::vec3(0, 0, 0), 10000, 2, 15, 40, glm::vec4(0), true);
 	physicsScene->AddActor(newBox1);
 	BoxClass* newBox2;
-	newBox2 = new BoxClass(glm::vec3(0, 0, 20), glm::vec3(0, 0, 0), 10000, 38, 8, 2, glm::vec4(0), true);
+	newBox2 = new BoxClass(glm::vec3(0, 8, 20), glm::vec3(0, 0, 0), 10000, 38, 15, 2, glm::vec4(0), true);
 	physicsScene->AddActor(newBox2);
 	BoxClass* newBox3;
-	newBox3 = new BoxClass(glm::vec3(0, 0, -20), glm::vec3(0, 0, 0), 10000, 38, 8, 2, glm::vec4(0), true);
+	newBox3 = new BoxClass(glm::vec3(0, 8, -20), glm::vec3(0, 0, 0), 10000, 38, 15, 2, glm::vec4(0), true);
 	physicsScene->AddActor(newBox3);
 
 
@@ -307,44 +307,44 @@ void Physics::DIYPhysicsSetup1()
 
 
 
-	const int width = 4;
-	const int height = 4;
-	
-	SphereClass* ball[width][height];
-	for (int i = 0; i < 4; ++i)
-	{
-		for (int j = 0; j < 4; ++j)
-		{
-			ball[i][j] = new SphereClass(glm::vec3(2 * i, 2 * j + 2, 1), glm::vec3(0, 0, 0), 3.0f, 0.5, glm::vec4(1, 0, 0, 1), false);
-			physicsScene->AddActor(ball[i][j]);
-		}
-	}
-	ball[0][height-1]->SetStaticValue(true);
-	ball[width - 1][height - 1]->SetStaticValue(true);
-	
-	SpringJoint* joint[24];
-	int jointCount = 0;
-	for (int i = 0; i < 4; ++i)
-	{
-		for (int j = 0; j < 3; ++j)
-		{
-			joint[jointCount] = new SpringJoint(ball[i][j], ball[i][j + 1], 20, 0.9);
-			jointCount++;
-		}
-	}
-	for (int i = 0; i < 3; ++i)
-	{
-		for (int j = 0; j < 4; ++j)
-		{
-			joint[jointCount] = new SpringJoint(ball[i][j], ball[i + 1][j], 20, 0.9); 
-			jointCount++;
-		}
-	}
-	//physicsScene->AddActor(joint[jointCount]);
-	for (int i = 0; i < jointCount; ++i)
-	{
-		physicsScene->AddActor(joint[i]);
-	}
+	//const int width = 4;
+	//const int height = 4;
+	//
+	//SphereClass* ball[width][height];
+	//for (int i = 0; i < 4; ++i)
+	//{
+	//	for (int j = 0; j < 4; ++j)
+	//	{
+	//		ball[i][j] = new SphereClass(glm::vec3(2 * i, 2 * j + 2, 1), glm::vec3(0, 0, 0), 3.0f, 0.5, glm::vec4(1, 0, 0, 1), false);
+	//		physicsScene->AddActor(ball[i][j]);
+	//	}
+	//}
+	//ball[0][height-1]->SetStaticValue(true);
+	//ball[width - 1][height - 1]->SetStaticValue(true);
+	//
+	//SpringJoint* joint[24];
+	//int jointCount = 0;
+	//for (int i = 0; i < 4; ++i)
+	//{
+	//	for (int j = 0; j < 3; ++j)
+	//	{
+	//		joint[jointCount] = new SpringJoint(ball[i][j], ball[i][j + 1], 20, 0.9);
+	//		jointCount++;
+	//	}
+	//}
+	//for (int i = 0; i < 3; ++i)
+	//{
+	//	for (int j = 0; j < 4; ++j)
+	//	{
+	//		joint[jointCount] = new SpringJoint(ball[i][j], ball[i + 1][j], 20, 0.9); 
+	//		jointCount++;
+	//	}
+	//}
+	////physicsScene->AddActor(joint[jointCount]);
+	//for (int i = 0; i < jointCount; ++i)
+	//{
+	//	physicsScene->AddActor(joint[i]);
+	//}
 }
 
 void Physics::PhysXSetup()
@@ -481,7 +481,9 @@ void Physics::UpdatePhysx(float a_deltaTime)
 	}
 	if (glfwGetKey(m_window, GLFW_KEY_SPACE) && onGround)
 	{
-		velocity.y += 10 * movementSpeed * a_deltaTime;
+		_characterYVelocity += movementSpeed * 1.2f * a_deltaTime;
+		velocity.y += _characterYVelocity;
+		//velocity.y += 10 * movementSpeed * a_deltaTime;
 	}
 	//todo add z movement and jumping
 	float minDistance = 0.001f;
@@ -540,16 +542,16 @@ void Physics::setupTuorial1()
 	//add a box
 	float density = 10;
 	PxBoxGeometry box(2, 2, 2);
-	PxTransform transform(PxVec3(0, 5, 0));
+	PxTransform transform(PxVec3(40, 5, 0));
 	PxRigidDynamic* dynamicActor = PxCreateDynamic(*g_Physics, transform, box, *g_PhysicsMaterial, density);
 	dynamicActor->userData = this;
 	//MyCollisionCallBack::SetShapeAsTrigger(dynamicActor);
 	//add it to the PhysX scene
 	g_PhysicsScene->addActor(*dynamicActor);
 
-	//add a box
+	//trigger 1
 	PxBoxGeometry box1(2, 2, 2);
-	PxTransform transform1(PxVec3(20, 5, 0));
+	PxTransform transform1(PxVec3(50, 25, 0));
 	PxRigidStatic* staticActor = PxCreateStatic(*g_Physics, transform1, box1, *g_PhysicsMaterial);
 	//PxRigidStatic* dynamicActor = PxCreateStatic(*g_Physics, transform, box, *g_PhysicsMaterial, density);
 	staticActor->setName("Box Trigger");
@@ -557,6 +559,17 @@ void Physics::setupTuorial1()
 	staticActor->userData = this;
 	//add it to the PhysX scene
 	g_PhysicsScene->addActor(*staticActor);
+
+	//trigger 2
+	PxBoxGeometry box11(2, 2, 2);
+	PxTransform transform11(PxVec3(50, 25, 6));
+	PxRigidStatic* staticActor11 = PxCreateStatic(*g_Physics, transform11, box11, *g_PhysicsMaterial);
+	//PxRigidStatic* dynamicActor = PxCreateStatic(*g_Physics, transform, box, *g_PhysicsMaterial, density);
+	staticActor11->setName("Box Trigger1");
+	MyCollisionCallBack::SetShapeAsTrigger(staticActor11);
+	staticActor11->userData = this;
+	//add it to the PhysX scene
+	g_PhysicsScene->addActor(*staticActor11);
 
 	RagdollNode* ragdollData[] =
 	{
@@ -580,7 +593,7 @@ void Physics::setupTuorial1()
 	};
 
 	PxArticulation* ragdollArticulation;
-	ragdollArticulation = RagdollNode::MakeRagdoll(g_Physics, ragdollData, PxTransform(PxVec3(5, 2, 10)), .1f, g_PhysicsMaterial);
+	ragdollArticulation = RagdollNode::MakeRagdoll(g_Physics, ragdollData, PxTransform(PxVec3(45, 50, 10)), .1f, g_PhysicsMaterial);
 	ragdollArticulation->userData = this;
 	g_PhysicsScene->addArticulation(*ragdollArticulation);
 
@@ -619,7 +632,7 @@ void Physics::setupTuorial1()
 		//m_particleEmitter = new ParticleEmitter(maxParticles, PxVec3(0, 10, 0), pf, .01);
 		//m_particleEmitter->setStartVelocityRange(-2.0f, 0, -2.0f, 2.0f, 0.0f, 2.0f);
 
-		m_particleEmitter = new ParticleFluidEmitter(maxParticles, PxVec3(0, 10, 0), pf, .1);
+		m_particleEmitter = new ParticleFluidEmitter(maxParticles, PxVec3(40, 10, 0), pf, .1f);
 		m_particleEmitter->setStartVelocityRange(-.001f, -250.0f, -0.001f, 0.001f, -250.0f, 0.001f);
 	}
 
@@ -637,7 +650,7 @@ void Physics::setupTuorial1()
 	//create the layer controller
 	gPlayerController = gCharacterManager->createController(desc);
 
-	gPlayerController->setPosition(PxExtendedVec3(10, 10, 10));
+	gPlayerController->setPosition(PxExtendedVec3(50, 10, 10));
 	//set up some variables to control our player with
 	_characterYVelocity = 0; //initialize character velocity
 	_characterRotation = 0; //and rotation
@@ -647,6 +660,45 @@ void Physics::setupTuorial1()
 	gPlayerController->getActor()->userData = this;
 	g_PhysicsScene->addActor(*gPlayerController->getActor()); //so we can draw its gizmo
 	
+
+	//Add Boundaries
+	//add a box
+	PxBoxGeometry box2(10, 5, 0.5f);
+	PxTransform transform2(PxVec3(40, 5, 10));
+	PxRigidStatic* staticActor2 = PxCreateStatic(*g_Physics, transform2, box2, *g_PhysicsMaterial);
+	staticActor2->setName("Boundary");
+	staticActor2->userData = this;
+	g_PhysicsScene->addActor(*staticActor2);
+
+	PxBoxGeometry box3(10, 5, 0.5f);
+	PxTransform transform3(PxVec3(40, 5, -10));
+	PxRigidStatic* staticActor3 = PxCreateStatic(*g_Physics, transform3, box3, *g_PhysicsMaterial);
+	staticActor3->setName("Boundary");
+	staticActor3->userData = this;
+	g_PhysicsScene->addActor(*staticActor3);
+
+	PxBoxGeometry box4(0.5f, 5, 10.f);
+	PxTransform transform4(PxVec3(50, 5, 0));
+	PxRigidStatic* staticActor4 = PxCreateStatic(*g_Physics, transform4, box4, *g_PhysicsMaterial);
+	staticActor4->setName("Boundary");
+	staticActor4->userData = this;
+	g_PhysicsScene->addActor(*staticActor4);
+
+	PxBoxGeometry box5(0.5f, 5, 10.f);
+	PxTransform transform5(PxVec3(30, 5, 0));
+	PxRigidStatic* staticActor5 = PxCreateStatic(*g_Physics, transform5, box5, *g_PhysicsMaterial);
+	staticActor5->setName("Boundary");
+	staticActor5->userData = this;
+	g_PhysicsScene->addActor(*staticActor5);
+
+
+	//PxBoxGeometry box6(0.5f, 5, 10.f);
+	//PxTransform transform6(PxVec3(35, 25, 0), PxQuat(1.f, 1.f, 1.f, 1.f));
+	////transform.rotate(PxVec3(1.f, 1.f, 1.f));
+	//PxRigidStatic* staticActor6 = PxCreateStatic(*g_Physics, transform6, box6, *g_PhysicsMaterial);
+	//staticActor6->setName("Box");
+	//staticActor6->userData = this;
+	//g_PhysicsScene->addActor(*staticActor6);
 
 }
 

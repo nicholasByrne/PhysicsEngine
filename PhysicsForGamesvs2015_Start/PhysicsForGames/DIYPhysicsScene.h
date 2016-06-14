@@ -4,6 +4,7 @@
 #include <vector>
 
 struct GLFWwindow;
+class FlyCamera;
 
 class DIYPhysicsScene
 {
@@ -16,7 +17,7 @@ public:
 	std::vector<PhysicsObject*> actors;
 	void AddActor(PhysicsObject* actor);
 	void RemoveActor(PhysicsObject* actor);
-	void Update(GLFWwindow* window, float fDeltaTime);
+	void Update(GLFWwindow* window, float fDeltaTime, FlyCamera* camera);
 	void DebugScene();
 	void AddGizmos();
 
@@ -37,6 +38,8 @@ public:
 	static bool Box2Sphere(PhysicsObject*, PhysicsObject*);
 	static bool Box2Box(PhysicsObject*, PhysicsObject*);
 
+
+	bool canShoot;
 
 
 };

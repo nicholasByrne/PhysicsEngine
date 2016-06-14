@@ -26,6 +26,9 @@ public:
 	void renderParticles();
 
 	void setStartVelocityRange(float minX, float minY, float minZ, float maxX, float maxY, float maxZ);
+
+	bool spawnParticles; //pls work
+
 private:
 	int getNextFreeParticle();
 	bool addPhysXParticle(int particleIndex);

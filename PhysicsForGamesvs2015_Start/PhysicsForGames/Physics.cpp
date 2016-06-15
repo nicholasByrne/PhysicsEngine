@@ -17,6 +17,8 @@
 
 //#include <cstdlib> //rand
 
+#include <iostream>
+
 
 #define Assert(val) if (val){}else{ *((char*)0) = 0;}
 #define ArrayCount(val) (sizeof(val)/sizeof(val[0]))
@@ -92,6 +94,9 @@ bool Physics::update()
 
 	//Update Physx
 	UpdatePhysx(m_delta_time);
+
+	if (m_sphereClass != nullptr)
+		std::cout << "(" << m_sphereClass->m_position.x << ", " << m_sphereClass->m_position.y << ", " << m_sphereClass->m_position.z << ")" << std::endl;
 
     return true;
 }
@@ -280,21 +285,24 @@ void Physics::DIYPhysicsSetup1()
 
 
 	//int numberBalls = 10;
-	SphereClass* ball1 = new SphereClass(glm::vec3(1, 20, 1), glm::vec3(0, 0, 0), 3.0f, 0.5, glm::vec4(1, 0, 0, 1), true);
+	SphereClass* ball1 = new SphereClass(glm::vec3(0, 20, 1), glm::vec3(0, 0, 0), 3.0f, 0.5, glm::vec4(1, 0, 0, 1), true);
 	SphereClass* ball2 = new SphereClass(glm::vec3(1, 19, 1), glm::vec3(0, 0, 0), 3.0f, 0.5, glm::vec4(1, 0, 0, 1), false);
-	//SphereClass* ball3 = new SphereClass(glm::vec3(1, 3, 1), glm::vec3(0, 0, 0), 3.0f, 0.5, glm::vec4(1, 0, 0, 1), false);
-	//SphereClass* ball4 = new SphereClass(glm::vec3(1, 1, 1), glm::vec3(0, 0, 0), 3.0f, 0.5, glm::vec4(1, 0, 0, 1), false);
-	SpringJoint* joint1 = new SpringJoint(ball1, ball2, 5.f, 0.5f);
-	//SpringJoint* joint2 = new SpringJoint(ball2, ball3, 0.5f, 0.2f);
-	//SpringJoint* joint3 = new SpringJoint(ball3, ball4, 0.5f, 0.2f);
+	SphereClass* ball3 = new SphereClass(glm::vec3(2, 20, 1), glm::vec3(0, 0, 0), 3.0f, 0.5, glm::vec4(1, 0, 0, 1), true);
+	//SphereClass* ball4 = new SphereClass(glm::vec3(1, 17, 1), glm::vec3(0, 0, 0), 3.0f, 0.5, glm::vec4(1, 0, 0, 1), false);
+	SpringJoint* joint1 = new SpringJoint(ball1, ball2, 4.5f, 0.2f);
+	SpringJoint* joint2 = new SpringJoint(ball3, ball2, 4.5f, 0.2f);
+	//SpringJoint* joint3 = new SpringJoint(ball2, ball4, 8.5f, 0.4f);
 	//
 	physicsScene->AddActor(ball1);
 	physicsScene->AddActor(ball2);
-	//physicsScene->AddActor(ball3);
+	physicsScene->AddActor(ball3);
 	//physicsScene->AddActor(ball4);
 	physicsScene->AddActor(joint1);
-	//physicsScene->AddActor(joint2);
+	physicsScene->AddActor(joint2);
 	//physicsScene->AddActor(joint3);
+
+	m_sphereClass = ball1;
+
 
 	//for (int i = 0; i < numberBalls; ++i)
 	//{
@@ -632,7 +640,7 @@ void Physics::setupTuorial1()
 		//m_particleEmitter = new ParticleEmitter(maxParticles, PxVec3(0, 10, 0), pf, .01);
 		//m_particleEmitter->setStartVelocityRange(-2.0f, 0, -2.0f, 2.0f, 0.0f, 2.0f);
 
-		m_particleEmitter = new ParticleFluidEmitter(maxParticles, PxVec3(40, 10, 0), pf, .1f);
+		m_particleEmitter = new ParticleFluidEmitter(maxParticles, PxVec3(40, 10, 0), pf, .3f);
 		m_particleEmitter->setStartVelocityRange(-.001f, -250.0f, -0.001f, 0.001f, -250.0f, 0.001f);
 	}
 

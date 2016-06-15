@@ -60,6 +60,8 @@ public:
 	void DIYPhysicsSetup1();
 
 	DIYPhysicsScene* physicsScene;
+
+	SphereClass* m_sphereClass;
 	
 	//PhysX
 	void PhysXSetup();

@@ -282,7 +282,7 @@ bool DIYPhysicsScene::Plane2Box(PhysicsObject* obj1, PhysicsObject* obj2)
 				planeNormal *= -1;
 			}
 			CollisionResponse(obj1, obj2, -overlap, plane1->m_normal);
-			std::cout << overlap << std::endl;
+			//std::cout << overlap << std::endl;
 			//glm::vec3 forceVector = -2 * planeNormal * (glm::dot(planeNormal, box2->m_velocity));
 			//box2->m_velocity += forceVector;
 			//box2->m_position += planeNormal * std::abs(overlap) * 1.0f;
@@ -457,17 +457,17 @@ bool DIYPhysicsScene::Box2Box(PhysicsObject* obj1, PhysicsObject* obj2)
 
 			//glm::vec3 forceVector = -1 * sphere2->GetMass() * planeNormal * (glm::dot(planeNormal, sphere2->m_velocity));
 
-			std::cout << "AABB-AABB Collision!" << std::endl;
-			std::cout << "OLD Box1Pos = (" << box1->m_position.x << ",\t " << box1->m_position.y << ",\t " << box1->m_position.z << ") - " << std::endl;
-			std::cout << "OLD Box2Pos = (" << box2->m_position.x << ",\t " << box2->m_position.y << ",\t " << box2->m_position.z << ") - " << std::endl;
+			//std::cout << "AABB-AABB Collision!" << std::endl;
+			//std::cout << "OLD Box1Pos = (" << box1->m_position.x << ",\t " << box1->m_position.y << ",\t " << box1->m_position.z << ") - " << std::endl;
+			//std::cout << "OLD Box2Pos = (" << box2->m_position.x << ",\t " << box2->m_position.y << ",\t " << box2->m_position.z << ") - " << std::endl;
 			//box1->ApplyForceToActor(box2, seperationNormal * -minOverlap);	
 			////Seperate
 			//box1->m_position += minOverlap * collisionNormal * 0.5f;
 			//box2->m_position -= minOverlap * collisionNormal * 0.5f;
 
 			//CollisionSeperate(obj1, obj2, -minOverlap, seperationNormal);
-			std::cout << "NEW Box1Pos = (" << box1->m_position.x << ",\t " << box1->m_position.y << ",\t " << box1->m_position.z << ") - " << std::endl;
-			std::cout << "NEW Box2Pos = (" << box2->m_position.x << ",\t " << box2->m_position.y << ",\t " << box2->m_position.z << ") - " << std::endl;
+			//std::cout << "NEW Box1Pos = (" << box1->m_position.x << ",\t " << box1->m_position.y << ",\t " << box1->m_position.z << ") - " << std::endl;
+			//std::cout << "NEW Box2Pos = (" << box2->m_position.x << ",\t " << box2->m_position.y << ",\t " << box2->m_position.z << ") - " << std::endl;
 			return true;
 		}
 	}

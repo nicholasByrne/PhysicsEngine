@@ -95,8 +95,8 @@ bool Physics::update()
 	//Update Physx
 	UpdatePhysx(m_delta_time);
 
-	if (m_sphereClass != nullptr)
-		std::cout << "(" << m_sphereClass->m_position.x << ", " << m_sphereClass->m_position.y << ", " << m_sphereClass->m_position.z << ")" << std::endl;
+	//if (m_sphereClass != nullptr)
+	//	std::cout << "(" << m_sphereClass->m_position.x << ", " << m_sphereClass->m_position.y << ", " << m_sphereClass->m_position.z << ")" << std::endl;
 
     return true;
 }
@@ -601,7 +601,7 @@ void Physics::setupTuorial1()
 	};
 
 	PxArticulation* ragdollArticulation;
-	ragdollArticulation = RagdollNode::MakeRagdoll(g_Physics, ragdollData, PxTransform(PxVec3(45, 50, 10)), .1f, g_PhysicsMaterial);
+	ragdollArticulation = RagdollNode::MakeRagdoll(g_Physics, ragdollData, PxTransform(PxVec3(45, 15, 10)), .1f, g_PhysicsMaterial);
 	ragdollArticulation->userData = this;
 	g_PhysicsScene->addArticulation(*ragdollArticulation);
 
@@ -658,7 +658,7 @@ void Physics::setupTuorial1()
 	//create the layer controller
 	gPlayerController = gCharacterManager->createController(desc);
 
-	gPlayerController->setPosition(PxExtendedVec3(50, 10, 10));
+	gPlayerController->setPosition(PxExtendedVec3(35, 20, 10));
 	//set up some variables to control our player with
 	_characterYVelocity = 0; //initialize character velocity
 	_characterRotation = 0; //and rotation
